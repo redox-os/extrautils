@@ -64,6 +64,7 @@ fn main() {
 
     match arg.as_str() {
         "-u" | "--to-uppercase" => {
+            // TODO remove unwraps in favor of `try`
             for i in stdin.chars().flat_map(|x| x.unwrap().to_uppercase()) {
                 let mut buf = [0; 4];
                 let n = i.encode_utf8(&mut buf).try(&mut stdout);
