@@ -108,5 +108,5 @@ fn main() {
         }
     }
 
-    stdout.write(b"\n")
+    stdout.write(b"\n").try(&mut stdout);
 }
