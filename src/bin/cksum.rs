@@ -107,4 +107,6 @@ fn main() {
             stdout.write(&[hex_to_ascii(i & 0b1111), hex_to_ascii(i >> 4)]).try(&mut stdout);
         }
     }
+
+    stdout.write(b"\n")
 }
