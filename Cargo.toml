@@ -15,5 +15,9 @@ path = "src/bin/mtxt.rs"
 name = "cur"
 path = "src/bin/cur.rs"
 
+[[bin]]
+name = "cksum"
+path = "src/bin/cksum.rs"
+
 [dependencies.coreutils]
 git = "https://github.com/redox-os/coreutils.git"
