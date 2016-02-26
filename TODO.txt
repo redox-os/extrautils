@@ -1,0 +1,13 @@
+- calc
+- cal
+- rd (less)
+- sc (spellcheck)
+- shuf
+- rand
+- djb2
+- rep (replace)
+- cur (freely move cursor)
+- look
+- find
+- search (search)
+- unansi
