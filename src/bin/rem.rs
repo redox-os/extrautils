@@ -14,7 +14,7 @@ static HELP: &'static str = r#"
     NAME
         rem - set a count-down.
     SYNOPSIS
-        rem [-h | --help] [-m N | --minutes N] [-H N | --hours N] [-s N | --seconds N] [-M N | --milliseconds N] [-n | --len]
+        rem [-h | --help] [-m N | --minutes N] [-H N | --hours N] [-s N | --seconds N] [-M N | --milliseconds N] [-n | --len] [-b | --blink]
     DESCRIPTION
         This utility lets you set a count-down with a progress bar. The options can be given in combination, adding together the durations given.
     OPTIONS
@@ -36,6 +36,9 @@ static HELP: &'static str = r#"
         -n
         --len
             Length of the progress bar.
+        -b
+        --blink
+            Blink with a red banner when done.
     AUTHOR
         This program was written by Ticki for Redox OS. Bugs, issues, or feature requests should be reported in the Github repository, 'redox-os/extrautils'.
     COPYRIGHT
@@ -56,6 +59,7 @@ fn main() {
 
     let mut ms = 0u64;
     let mut len = 20;
+    let mut blink = false;
 
     // Loop over the arguments.
     loop {
@@ -72,6 +76,7 @@ fn main() {
                 return;
             },
             "-n" | "--len" => len = args.next().fail("no number after -n.", &mut stderr).parse().try(&mut stderr),
+            "-b" | "--blink" => blink = true,
             t => {
                 // Find number input.
                 let num: u64 = args.next().unwrap_or_else(|| {
@@ -115,6 +120,21 @@ fn main() {
         stdout.flush().try(&mut stderr);
         // Sleep.
         sleep(Duration::from_millis(ms / len));
+    }
+
+
+    if blink {
+        for _ in 0..13 {
+            stdout.write(b"\x1b[41m").try(&mut stderr);
+            stdout.write(b"\x1b[2K").try(&mut stderr);
+            stdout.flush().try(&mut stderr);
+            sleep(Duration::from_millis(200));
+
+            stdout.write(b"\x1b[0m").try(&mut stderr);
+            stdout.write(b"\x1b[2K").try(&mut stderr);
+            stdout.flush().try(&mut stderr);
+            sleep(Duration::from_millis(200));
+        }
     }
 
     // Show the cursor again.
