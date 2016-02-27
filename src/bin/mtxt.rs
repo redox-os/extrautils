@@ -57,6 +57,7 @@ fn main() {
     let mut stdout = stdout.lock();
     let mut stderr = io::stderr();
 
+    // These are the options.
     let mut to_uppercase = false;
     let mut to_lowercase = false;
     let mut strip_non_ascii = false;
@@ -67,19 +68,22 @@ fn main() {
             "-l" | "--to-lowercase" => to_lowercase = true,
             "-a" | "--strip-non-ascii" => strip_non_ascii = true,
             "-h" | "--help" => {
+                // The help page.
                 stdout.write(HELP.as_bytes()).try(&mut stderr);
             },
             a => {
-                stdout.write(b"error: unknown argument, ").try(&mut stderr);
-                stdout.write(a.as_bytes()).try(&mut stderr);
-                stdout.write(b".\n").try(&mut stderr);
-                stdout.flush().try(&mut stderr);
+                // The argument, a, is unknown.
+                stderr.write(b"error: unknown argument, ").try(&mut stderr);
+                stderr.write(a.as_bytes()).try(&mut stderr);
+                stderr.write(b".\n").try(&mut stderr);
+                stderr.flush().try(&mut stderr);
                 exit(1);
             },
         }
     }
 
     if to_lowercase && to_uppercase {
+        // Fail, since -u and -l are incompatible.
         fail("-u and -l are incompatible. Aborting.", &mut stderr);
     }
 
@@ -96,14 +100,18 @@ fn main() {
         let i = i.try(&mut stderr);
 
         // TODO handle -a more efficient
+
+        // If -u is set, convert to uppercase
         if to_uppercase {
             for uppercase in i.to_uppercase().filter(|x| !strip_non_ascii || x.is_ascii() ) {
                 stdout.put_char(uppercase).try(&mut stderr);
             }
+        // If -l is set, convert to lowercase
         } else if to_lowercase {
             for lowercase in i.to_lowercase().filter(|x| !strip_non_ascii || x.is_ascii()) {
                 stdout.put_char(lowercase).try(&mut stderr);
             }
+        // If -a is set, strip non-ASCII.
         } else if !strip_non_ascii || strip_non_ascii && i.is_ascii() {
             stdout.put_char(i).try(&mut stderr);
         }

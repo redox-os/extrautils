@@ -60,6 +60,7 @@ impl Hasher for Djb2 {
 
     fn write(&mut self, bytes: &[u8]) {
         for &b in bytes {
+            // Update the state for each byte in the buffer.
             self.state = (self.state << 5).wrapping_add(self.state).wrapping_add(b as u64);
         }
     }
@@ -75,20 +76,25 @@ pub fn hex_to_ascii(b: u8) -> u8 {
 }
 
 fn main() {
+    let args = args();
     let stdout = stdout();
     let mut stdout = stdout.lock();
     let mut stderr = stderr();
 
+    // The buffer. Bytes will be read to this, and afterwards checksummed.
     let mut buf = Vec::new();
+
     let mut binary_mode = false;
-    let args = args();
 
     for i in args.skip(1) {
         match i.as_str() {
+            // Print the help page.
             "-h" | "--help" => {
                 stdout.write(HELP.as_bytes()).try(&mut stderr);
             }
+            // Binary mode.
             "-b" | "--binary" => binary_mode = true,
+            // Read from stdin.
             "-" => {
                 stdin().read_to_end(&mut buf).try(&mut stderr);
             }
@@ -98,17 +104,23 @@ fn main() {
         }
     }
 
+    // Hash 'em all!
     let mut hasher: Djb2 = Default::default();
     hasher.write(&buf);
+    // We transmute the u64 into four bytes. This is completely safe, since any arbitrary value is
+    // valid.
     let hash = unsafe { mem::transmute::<u64, [u8; 8]>(hasher.finish()) };
 
     if binary_mode {
+        // Write directly to stdout, no hexadecimaverylongwordlification.
         stdout.write(&hash).try(&mut stderr);
     } else {
+        // Print the hexadecimal hash to stdout.
         for i in hash.iter() {
             stdout.write(&[hex_to_ascii(i & 0b1111), hex_to_ascii(i >> 4)]).try(&mut stderr);
         }
     }
 
+    // Trailing newline.
     stdout.write(b"\n").try(&mut stderr);
 }

@@ -33,6 +33,7 @@ static HELP: &'static str = r#"
 "#;
 
 fn csi<T: Write>(stdout: &mut T, other: &str) {
+    // Print CSI (control sequence introducer)
     if let Ok(2) = stdout.write("\x1b[".as_bytes()) {
         let _ = stdout.write(other.as_bytes());
     }
@@ -48,17 +49,21 @@ fn main() {
 
     for i in args {
         match i.as_str() {
+            // Print the help page.
             "-h" | "--help" => {
                 stdout.write(HELP.as_bytes()).try(&mut stderr);
             },
+            // This argument is unknown.
             _ => fail("unknown argument.", &mut stderr),
         }
     }
 
     loop {
+        // We read one byte at a time from stdin.
         let mut input = [0];
         let _ = stdin.read(&mut input);
 
+        // Output the right escape code to stdout.
         match input[0] {
             b'k' => csi(&mut stdout, "A"),
             b'j' => csi(&mut stdout, "B"),
@@ -68,6 +73,7 @@ fn main() {
             _ => {},
         }
 
+        // Flush it.
         let _ = stdout.flush();
     }
 }
