@@ -10,7 +10,7 @@ use std::time::Duration;
 
 use coreutils::extra::OptionalExt;
 
-static HELP: &'static str = r#"
+static LONG_HELP: &'static str = r#"
     NAME
         rem - set a count-down.
     SYNOPSIS
@@ -18,9 +18,10 @@ static HELP: &'static str = r#"
     DESCRIPTION
         This utility lets you set a count-down with a progress bar. The options can be given in combination, adding together the durations given.
     OPTIONS
-        -h
         --help
             Print this manual page.
+        -h
+            Print short help page.
         -m N
         --minutes N
             Wait N minutes.
@@ -33,9 +34,9 @@ static HELP: &'static str = r#"
         -M N
         --milliseconds N
             Wait N milliseconds.
-        -n
-        --len
-            Length of the progress bar.
+        -n N
+        --len N
+            Set the length of the progress bar to N.
         -b
         --blink
             Blink with a red banner when done.
@@ -49,6 +50,18 @@ static HELP: &'static str = r#"
         The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
         THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+"#;
+
+static SHORT_HELP: &'static str = r#"
+    rem - set a count-down.
+
+    Options (use --help for extended list):
+    -m N          => Wait N minutes.
+    -H N          => Wait N hours.
+    -s N          => Wait N seconds.
+    -M N          => Wait N milliseconds.
+    -n N          => N character progress bar.
+    -b            => Blink when done.
 "#;
 
 fn main() {
@@ -70,9 +83,14 @@ fn main() {
         };
 
         match arg.as_str() {
-            "-h" | "--help" => {
+            "--help" => {
                 // Print help.
-                stdout.write(HELP.as_bytes()).try(&mut stderr);
+                stdout.write(LONG_HELP.as_bytes()).try(&mut stderr);
+                return;
+            },
+            "-h" => {
+                // Print help.
+                stdout.write(SHORT_HELP.as_bytes()).try(&mut stderr);
                 return;
             },
             "-n" | "--len" => len = args.next().fail("no number after -n.", &mut stderr).parse().try(&mut stderr),
@@ -124,16 +142,26 @@ fn main() {
 
 
     if blink {
+        // This will print a blinking red banner.
         for _ in 0..13 {
+            // Set drawing mode to red background.
             stdout.write(b"\x1b[41m").try(&mut stderr);
+            // Clear the current line, rendering the background red.
             stdout.write(b"\x1b[2K").try(&mut stderr);
+            // Flush.
+            stdout.flush().try(&mut stderr);
+            // Sleep.
+            sleep(Duration::from_millis(200));
+
+            // Clear the drawing mode.
+            stdout.write(b"\x1b[0m").try(&mut stderr);
+            // Clear the background.
+            stdout.write(b"\x1b[2K").try(&mut stderr);
+            // Flush.
             stdout.flush().try(&mut stderr);
             sleep(Duration::from_millis(200));
 
-            stdout.write(b"\x1b[0m").try(&mut stderr);
-            stdout.write(b"\x1b[2K").try(&mut stderr);
-            stdout.flush().try(&mut stderr);
-            sleep(Duration::from_millis(200));
+            // Repeat...
         }
     }
 
