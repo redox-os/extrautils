@@ -44,13 +44,14 @@ fn main() {
     let mut stdin = stdin.lock();
     let stdout = io::stdout();
     let mut stdout = stdout.lock();
+    let mut stderr = io::stderr();
 
     for i in args {
         match i.as_str() {
             "-h" | "--help" => {
-                stdout.write(HELP.as_bytes()).try(&mut stdout);
+                stdout.write(HELP.as_bytes()).try(&mut stderr);
             },
-            _ => fail("unknown argument.", &mut stdout),
+            _ => fail("unknown argument.", &mut stderr),
         }
     }
 

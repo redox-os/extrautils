@@ -1,15 +1,14 @@
 #![deny(warnings)]
 #![feature(io)]
-#![feature(unicode)]
 
 extern crate coreutils;
 
 use std::ascii::AsciiExt;
 use std::env::args;
-use std::io::{Write, Read, self};
+use std::io::{self, Write, Read};
 use std::process::exit;
 
-use coreutils::extra::OptionalExt;
+use coreutils::extra::{WriteExt, OptionalExt, fail};
 
 static HELP: &'static str = r#"
     NAME
@@ -17,16 +16,14 @@ static HELP: &'static str = r#"
     SYNOPSIS
         mtxt [-h | --help | -u | --to-uppercase-w | -l | --to-lowercase | -a | --strip-non-ascii]
     DESCRIPTION
-        This utility will manipulate UTF-8 encoded text from the standard input. Unicode is supported.
-
-        The flags are not compatible (for performance reasons). For combining the flags, piping is recommended.
+        This utility will manipulate UTF-8 encoded text from the standard input. Unicode is supported. The flags are composable, unless otherwise stated.
     OPTIONS
         -h
         --help
             Print this manual page.
         -u
         --to-uppercase
-            Convert the input to UPPERCASE. Works correctly with Unicode.
+            Convert the input to UPPERCASE. Works correctly with Unicode. Incompatible with '-l'.
         -l
         --lowercase
             Convert the input to lowercase. Works correctly with Unicode.
@@ -54,44 +51,61 @@ static HELP: &'static str = r#"
 "#;
 
 fn main() {
-    let mut args = args().skip(1);
     let stdin = io::stdin();
     let stdin = stdin.lock();
     let stdout = io::stdout();
     let mut stdout = stdout.lock();
+    let mut stderr = io::stderr();
 
-    let arg = args.next().fail("no argument given.", &mut stdout);
+    let mut to_uppercase = false;
+    let mut to_lowercase = false;
+    let mut strip_non_ascii = false;
 
-    match arg.as_str() {
-        "-u" | "--to-uppercase" => {
-            // TODO remove unwraps in favor of `try`
-            for i in stdin.chars().flat_map(|x| x.unwrap().to_uppercase()) {
-                let mut buf = [0; 4];
-                let n = i.encode_utf8(&mut buf).try(&mut stdout);
-                stdout.write(&buf[..n]).try(&mut stdout);
+    for arg in args().skip(1) {
+        match arg.as_str() {
+            "-u" | "--to-uppercase" => to_uppercase = true,
+            "-l" | "--to-lowercase" => to_lowercase = true,
+            "-a" | "--strip-non-ascii" => strip_non_ascii = true,
+            "-h" | "--help" => {
+                stdout.write(HELP.as_bytes()).try(&mut stderr);
+            },
+            a => {
+                stdout.write(b"error: unknown argument, ").try(&mut stderr);
+                stdout.write(a.as_bytes()).try(&mut stderr);
+                stdout.write(b".\n").try(&mut stderr);
+                stdout.flush().try(&mut stderr);
+                exit(1);
+            },
+        }
+    }
+
+    if to_lowercase && to_uppercase {
+        fail("-u and -l are incompatible. Aborting.", &mut stderr);
+    }
+
+    // My eyes bleed.
+    //
+    // Anyone?
+    // ...
+    //
+    // Silence.
+    //
+    // If you see this, rewrite the code below. Now, you can't say no. Too late.
+    // Muhahahaha.
+    for i in stdin.chars() {
+        let i = i.try(&mut stderr);
+
+        // TODO handle -a more efficient
+        if to_uppercase {
+            for uppercase in i.to_uppercase().filter(|x| !strip_non_ascii || x.is_ascii() ) {
+                stdout.put_char(uppercase).try(&mut stderr);
             }
-        },
-        "-l" | "--to-lowercase" => {
-            for i in stdin.chars().flat_map(|x| x.unwrap().to_lowercase()) {
-                let mut buf = [0; 4];
-                let n = i.encode_utf8(&mut buf).try(&mut stdout);
-                stdout.write(&buf[..n]).try(&mut stdout);
+        } else if to_lowercase {
+            for lowercase in i.to_lowercase().filter(|x| !strip_non_ascii || x.is_ascii()) {
+                stdout.put_char(lowercase).try(&mut stderr);
             }
-        },
-        "-a" | "--strip-non-ascii" => {
-            for i in stdin.bytes().map(|x| x.unwrap()).filter(|x| x.is_ascii()) {
-                stdout.write(&[i]).try(&mut stdout);
-            }
-        },
-        "-h" | "--help" => {
-            stdout.write(HELP.as_bytes()).try(&mut stdout);
-        },
-        a => {
-            stdout.write(b"error: unknown argument, ").try(&mut stdout);
-            stdout.write(a.as_bytes()).try(&mut stdout);
-            stdout.write(b".\n").try(&mut stdout);
-            stdout.flush().try(&mut stdout);
-            exit(1);
+        } else if !strip_non_ascii || strip_non_ascii && i.is_ascii() {
+            stdout.put_char(i).try(&mut stderr);
         }
     }
 }

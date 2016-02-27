@@ -1,13 +1,17 @@
-- calc
-- cal
-- rd (less)
-- sc (spellcheck)
-- shuf
-- rand
-- djb2
-- rep (replace)
-- cur (freely move cursor)
-- look
-- find
-- search (search)
-- unansi
+- [ ] calc
+- [ ] cal
+- [ ] rd (less)
+- [~] sc (spellcheck)
+- [ ] shuf
+- [ ] rand
+- [x] djb2
+- [ ] rep (replace)
+- [x] cur (freely move cursor)
+- [ ] look
+- [ ] find
+- [ ] search (search)
+- [ ] unansi
+- [ ] mux (multiplex)
+- [ ] fail (fail if stderr is non-empty)
+- [x] mtxt (manipulate text)
+- [ ] rem (count-down/reminder)

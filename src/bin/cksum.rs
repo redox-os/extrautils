@@ -6,7 +6,7 @@ use coreutils::extra::OptionalExt;
 use std::env::args;
 use std::fs::File;
 use std::hash::Hasher;
-use std::io::{Write, Read, stdin, stdout};
+use std::io::{Write, Read, stdin, stdout, stderr};
 use std::mem;
 
 static HELP: &'static str = r#"
@@ -77,6 +77,8 @@ pub fn hex_to_ascii(b: u8) -> u8 {
 fn main() {
     let stdout = stdout();
     let mut stdout = stdout.lock();
+    let mut stderr = stderr();
+
     let mut buf = Vec::new();
     let mut binary_mode = false;
     let args = args();
@@ -84,14 +86,14 @@ fn main() {
     for i in args.skip(1) {
         match i.as_str() {
             "-h" | "--help" => {
-                stdout.write(HELP.as_bytes()).try(&mut stdout);
+                stdout.write(HELP.as_bytes()).try(&mut stderr);
             }
             "-b" | "--binary" => binary_mode = true,
             "-" => {
-                stdin().read_to_end(&mut buf).try(&mut stdout);
+                stdin().read_to_end(&mut buf).try(&mut stderr);
             }
             file => {
-                File::open(file).try(&mut stdout).read_to_end(&mut buf).try(&mut stdout);
+                File::open(file).try(&mut stderr).read_to_end(&mut buf).try(&mut stderr);
             },
         }
     }
@@ -101,12 +103,12 @@ fn main() {
     let hash = unsafe { mem::transmute::<u64, [u8; 8]>(hasher.finish()) };
 
     if binary_mode {
-        stdout.write(&hash).try(&mut stdout);
+        stdout.write(&hash).try(&mut stderr);
     } else {
         for i in hash.iter() {
-            stdout.write(&[hex_to_ascii(i & 0b1111), hex_to_ascii(i >> 4)]).try(&mut stdout);
+            stdout.write(&[hex_to_ascii(i & 0b1111), hex_to_ascii(i >> 4)]).try(&mut stderr);
         }
     }
 
-    stdout.write(b"\n").try(&mut stdout);
+    stdout.write(b"\n").try(&mut stderr);
 }
