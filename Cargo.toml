@@ -4,10 +4,6 @@ version = "0.1.0"
 authors = ["Ticki <Ticki@users.noreply.github.com>"]
 
 [[bin]]
-name = "sc"
-path = "src/bin/sc.rs"
-
-[[bin]]
 name = "mtxt"
 path = "src/bin/mtxt.rs"
 
