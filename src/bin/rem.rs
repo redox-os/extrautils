@@ -122,6 +122,12 @@ fn main() {
         }
     }
 
+    // Default to help page.
+    if ms == 0 {
+        stdout.write(SHORT_HELP.as_bytes()).try(&mut stderr);
+        return;
+    }
+
     // Hide the cursor.
     stdout.write(b"\x1b[?25l").try(&mut stderr);
     // Draw the empty progress bar.
