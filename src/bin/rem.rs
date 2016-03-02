@@ -98,8 +98,8 @@ fn main() {
             t => {
                 // Find number input.
                 let num: u64 = args.next().unwrap_or_else(|| {
-                    stderr.write(b"error: incorrectly formatted number.\
-                                   Please input a positive integer.").try(&mut stderr);
+                    stderr.write(b"error: incorrectly formatted number. \
+                                   Please input a positive integer.\n").try(&mut stderr);
                     stderr.flush().try(&mut stderr);
                     exit(1);
                 }).parse().try(&mut stderr);
