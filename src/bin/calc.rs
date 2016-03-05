@@ -1,5 +1,4 @@
 #![deny(warnings)]
-
 extern crate coreutils;
 use coreutils::extra::OptionalExt;
 use std::env::args;
@@ -7,8 +6,8 @@ use std::io;
 use std::io::Write;
 //use std::rand::FloatMath::*;
 
-#[derive(Debug,Copy,Clone)]
-pub enum TokenType {
+#[derive(Debug, Clone)]
+pub enum Token {
     Plus,
     Minus,
     Divide,
@@ -16,68 +15,25 @@ pub enum TokenType {
     Exponent,
     OpenParen,
     CloseParen,
-    Number,
-    Error
-}
-
-impl TokenType {
-    pub fn to_string(&self) -> &'static str {
-        match self {
-            &TokenType::Plus       => "Plus",
-            &TokenType::Minus      => "Minus",
-            &TokenType::Divide     => "Divide",
-            &TokenType::Multiply   => "Multiply",
-            &TokenType::Exponent   => "Exponent",
-            &TokenType::OpenParen  => "OpenParen",
-            &TokenType::CloseParen => "CloseParen",
-            &TokenType::Number     => "Number",
-            &TokenType::Error      => "Error",
-        }
-    }
-}
-
-#[derive(Debug)]
-pub struct Token {
-    token_type: TokenType,
-    contents: String
+    Number(String),
 }
 
 impl Token {
-    pub fn new<S: Into<String>>(t: TokenType, s: S) -> Self {
-        Token {
-            token_type: t,
-            contents: s.into()
-        }
-    }
-
-    pub fn new_number<S: Into<String>>(number: S) -> Self {
-        Token {
-            token_type: TokenType::Number,
-            contents: number.into()
-        }
-    }
-
-    pub fn new_operator(operator: char) -> Self {
-        let mut op = String::with_capacity(1);
-        let op_type = match operator {
-            '+' => TokenType::Plus,
-            '-' => TokenType::Minus,
-            '/' => TokenType::Divide,
-            '*' => TokenType::Multiply,
-            '^' => TokenType::Exponent,
-            '(' => TokenType::OpenParen,
-            ')' => TokenType::CloseParen,
-            _   => coreutils::extra::fail("Invalid token", &mut io::stderr())
-        };
-        op.push(operator);
-        Token {
-            token_type: op_type,
-            contents: op
+    pub fn to_str(&self) -> &'static str {
+        match self {
+            &Token::Plus       => "Plus",
+            &Token::Minus      => "Minus",
+            &Token::Divide     => "Divide",
+            &Token::Multiply   => "Multiply",
+            &Token::Exponent   => "Exponent",
+            &Token::OpenParen  => "OpenParen",
+            &Token::CloseParen => "CloseParen",
+            &Token::Number(_)  => "Number",
         }
     }
 
     pub fn to_string(&self) -> String {
-        [ self.token_type.to_string(), "(", self.contents.as_str(), ")" ].join("")
+        self.to_str().to_owned()
     }
 }
 
@@ -105,11 +61,12 @@ impl IntermediateResult {
     }
 }
 
-pub trait IsOperator {
+pub trait OperatorFunctions {
     fn is_operator(self) -> bool;
+    fn operator_type(self) -> Token;
 }
 
-impl IsOperator for char {
+impl OperatorFunctions for char {
     fn is_operator(self) -> bool {
         self == '+' ||
         self == '-' ||
@@ -119,24 +76,21 @@ impl IsOperator for char {
         self == '(' ||
         self == ')' 
     }
+
+    fn operator_type(self) -> Token {
+        match self {
+            '+' => Token::Plus,
+            '-' => Token::Minus,
+            '/' => Token::Divide,
+            '*' => Token::Multiply,
+            '^' => Token::Exponent,
+            '(' => Token::OpenParen,
+            ')' => Token::CloseParen,
+            _   => coreutils::extra::fail("Invalid operator", &mut io::stderr())
+        }
+    }
 }
 
-// Vec<Token> -> String
-// take a vector of tokens and produce a string representation of the form: TokenType(token contents) ...
-// tokens_to_string([Number(3), Plus(+), Number(4)]) => "Number(3) Plus(+) Number(4)"
-// tokens_to_string([Number(3), Multiple(+), Number(4), Plus(+), Number(5)]) => "Number(3) Multiple(+) Number(4) Plus(+) Number(5)"
-pub fn tokens_to_string(tokens: &[Token]) -> String {
-    let v: Vec<String> = tokens.iter()
-          .map(|t| t.to_string())
-          .collect();
-    v.join(" ")
-}
-
-// String -> Vec<Token>
-// purpose: take an input string and return a vector of tokens
-// tokenize("3+4") => [Number(3), Plus(+), Number(4)]
-// tokenize("3 * 4 + 5") => [Number(3), Multiple(+), Number(4), Plus(+), Number(5)]
-// tokenize("3 + 4 / 5") => [Number(3), Plus(+), Number(4), Divide(+), Number(5)]
 pub fn tokenize(input: &str) -> Result<Vec<Token>, ParseError> {
     // CONSIDER: any smarter way to guess an initial capacity?
     let mut tokens: Vec<Token> = Vec::with_capacity(25);
@@ -151,9 +105,9 @@ pub fn tokenize(input: &str) -> Result<Vec<Token>, ParseError> {
         if c.is_digit(10) {
             let token_string = consume_number(&chars[current_pos..]);
             current_pos += token_string.len();
-            tokens.push(Token::new_number(token_string));
+            tokens.push(Token::Number(token_string));
         } else if c.is_operator() {
-            tokens.push(Token::new_operator(chars[current_pos]));
+            tokens.push(c.operator_type());
             current_pos += 1;
         } else if c.is_whitespace() {
             current_pos += 1;
@@ -199,18 +153,18 @@ pub fn e_expr(token_list: &[Token]) -> Result<IntermediateResult, ParseError> {
     let mut index = t1.tokens_read;
     
     while index < token_list.len() {
-        match token_list[index].token_type {
-            TokenType::Plus => {
+        match token_list[index] {
+            Token::Plus => {
                 let t2 = try!(t_expr(&token_list[index+1..]));
                 t1.value += t2.value;
                 t1.tokens_read += t2.tokens_read + 1;
             }
-            TokenType::Minus => {
+            Token::Minus => {
                 let t2 = try!(t_expr(&token_list[index+1..]));
                 t1.value -= t2.value;
                 t1.tokens_read += t2.tokens_read + 1;
             }
-            TokenType::Number => return Err(ParseError::UnexpectedToken(token_list[index].contents.clone(),"operator")),
+            Token::Number(ref n) => return Err(ParseError::UnexpectedToken(n.clone(),"operator")),
             _ => return break,
         };
         index = t1.tokens_read;
@@ -224,13 +178,13 @@ pub fn t_expr(token_list: &[Token]) -> Result<IntermediateResult, ParseError> {
     let mut index = f1.tokens_read;
 
     while index < token_list.len() {
-        match token_list[index].token_type {
-            TokenType::Multiply => {
+        match token_list[index] {
+            Token::Multiply => {
                 let f2 = try!(f_expr(&token_list[index+1..]));
                 f1.value *= f2.value;
                 f1.tokens_read += f2.tokens_read + 1;
             }
-            TokenType::Divide => {
+            Token::Divide => {
                 let f2 = try!(f_expr(&token_list[index+1..]));
                 if f2.value == 0.0 {
                     return Err(ParseError::OtherError("Divide by zero error".to_owned()));
@@ -239,7 +193,7 @@ pub fn t_expr(token_list: &[Token]) -> Result<IntermediateResult, ParseError> {
                     f1.tokens_read += f2.tokens_read + 1;
                 }
             }
-            TokenType::Number => return Err(ParseError::UnexpectedToken(token_list[index].contents.clone(),"operator")),
+            Token::Number(ref n) => return Err(ParseError::UnexpectedToken(n.clone(),"operator")),
             _ => break,
         }
         index = f1.tokens_read;
@@ -256,13 +210,13 @@ pub fn f_expr(token_list: &[Token]) -> Result<IntermediateResult, ParseError> {
     let mut index = g1.tokens_read;
     let token_len = token_list.len();
     while index < token_len {
-        match token_list[index].token_type {
-            TokenType::Exponent => {
+        match token_list[index] {
+            Token::Exponent => {
                 let f = try!(f_expr(&token_list[index+1..]));
                 g1.value = g1.value.powf(f.value);
                 g1.tokens_read += f.tokens_read + 1;
             }
-            TokenType::Number => return Err(ParseError::UnexpectedToken(token_list[index].contents.clone(),"operator")),
+            Token::Number(ref n) => return Err(ParseError::UnexpectedToken(n.clone(),"operator")),
             _ => break,
         }
         index = g1.tokens_read;
@@ -274,30 +228,34 @@ pub fn f_expr(token_list: &[Token]) -> Result<IntermediateResult, ParseError> {
 // Numbers and parenthesized expressions
 pub fn g_expr(token_list: &[Token]) -> Result<IntermediateResult, ParseError> {
     if !token_list.is_empty() {
-        match token_list[0].token_type {
-            TokenType::Number => {
-                token_list[0].contents.parse::<f64>()
-                    .map_err(|_| ParseError::InvalidNumber(token_list[0].contents.clone()))
-                    .and_then(|num| Ok(IntermediateResult::new(num, 1)))
+        match token_list[0] {
+            Token::Number(ref n) => {
+                n.parse::<f64>()
+                 .map_err(|_| ParseError::InvalidNumber(n.clone()))
+                 .and_then(|num| Ok(IntermediateResult::new(num, 1)))
             }
-            TokenType::Minus => {
+            Token::Minus => {
                 if token_list.len() > 1 {
-                    token_list[1].contents.parse::<f64>()
-                        .map_err(|_| ParseError::InvalidNumber(token_list[1].contents.clone()))
-                        .and_then(|num| Ok(IntermediateResult::new(-1.0 * num, 2)))
+                    if let Token::Number(ref n) = token_list[1] {
+                        n.parse::<f64>()
+                         .map_err(|_| ParseError::InvalidNumber(n.clone()))
+                         .and_then(|num| Ok(IntermediateResult::new(-1.0 * num, 2)))
+                    } else {
+                        Err(ParseError::UnexpectedToken(token_list[1].to_string(), "number"))
+                    }
                 } else {
-                    Err(ParseError::UnexpectedToken(token_list[1].contents.clone(), "number"))
+                    Err(ParseError::UnexpectedEndOfInput)
                 }
             }
-            TokenType::OpenParen => {
+            Token::OpenParen => {
                 let expr = e_expr(&token_list[1..]);
                 match expr {
                     Ok(ir) => {
                         let close_paren = ir.tokens_read + 1;
                         if close_paren < token_list.len() {
-                            match token_list[close_paren].token_type {
-                                TokenType::CloseParen => Ok(IntermediateResult::new(ir.value, close_paren+1)),
-                                _ => Err(ParseError::UnexpectedToken(token_list[close_paren].contents.clone(), ")")),
+                            match token_list[close_paren] {
+                                Token::CloseParen => Ok(IntermediateResult::new(ir.value, close_paren+1)),
+                                _ => Err(ParseError::UnexpectedToken(token_list[close_paren].to_string(), ")")),
                             }
                         } else {
                             Err(ParseError::OtherError("no matching close parenthesis found.".to_owned()))
@@ -306,7 +264,7 @@ pub fn g_expr(token_list: &[Token]) -> Result<IntermediateResult, ParseError> {
                     Err(e) => Err(e),
                 }
             }
-            _ => Err(ParseError::UnexpectedToken(token_list[0].contents.clone(), "number"))
+            _ => Err(ParseError::UnexpectedToken(token_list[0].to_string(), "number"))
         }
     } else {
         Err(ParseError::UnexpectedEndOfInput)
