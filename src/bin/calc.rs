@@ -1,10 +1,13 @@
-use std::prelude::v1::*;
+#![deny(warnings)]
+
+extern crate coreutils;
+use coreutils::extra::OptionalExt;
 use std::env::args;
 use std::io;
 use std::io::Write;
 //use std::rand::FloatMath::*;
 
-#[derive(Debug)]
+#[derive(Debug,Copy,Clone)]
 pub enum TokenType {
     Plus,
     Minus,
@@ -64,7 +67,7 @@ impl Token {
             '^' => TokenType::Exponent,
             '(' => TokenType::OpenParen,
             ')' => TokenType::CloseParen,
-            _   => unreachable!(), // TODO: should indicate error here
+            _   => coreutils::extra::fail("Invalid token", &mut io::stderr())
         };
         op.push(operator);
         Token {
@@ -78,7 +81,7 @@ impl Token {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug,  Clone)]
 pub enum ParseError {
     InvalidNumber(String),
     UnrecognizedToken(String),
@@ -103,7 +106,7 @@ impl IntermediateResult {
 }
 
 pub trait IsOperator {
-	fn is_operator(self) -> bool;
+    fn is_operator(self) -> bool;
 }
 
 impl IsOperator for char {
@@ -246,9 +249,10 @@ pub fn t_expr(token_list: &[Token]) -> Result<IntermediateResult, ParseError> {
 
 // Exponentiation
 pub fn f_expr(token_list: &[Token]) -> Result<IntermediateResult, ParseError> {
-    let mut g1 = try!(g_expr(token_list));
+    let g1 = try!(g_expr(token_list));
     // TODO: uncomment all of this once I can figure out why powf won't work
     /*
+    let mut g1 = try!(g_expr(token_list));
     let mut index = g1.tokens_read;
     let token_len = token_list.len();
     while index < token_len {
@@ -397,21 +401,27 @@ fn eval(input: &str) -> String {
 
 fn main() {
     let args = args();
+    let stdout = io::stdout();
+    let mut stdout = stdout.lock();
+    let mut stderr = io::stderr();
     if args.len() > 1 {
         let input: Vec<String> = args.skip(1).collect();
         println!("{}", eval(&input.join("")));
     } else {
-        let mut stdout = io::stdout();
-        let mut stdin = io::stdin();
+        let prompt = "[]> ".as_bytes();
         loop {
-            print!("[]> ");
-            stdout.flush();
+            stdout.write(prompt).try(&mut stderr);
+            stdout.flush().try(&mut stderr);
             let mut input = String::new();
-            stdin.read_line(&mut input)
-                 .expect("Error reading input");
+            io::stdin().read_line(&mut input)
+                       .try(&mut stderr);
             match input.trim() {
                 "exit" => break,
-                s => println!("{}", eval(s)),
+                s => {
+                    stdout.write(eval(s).as_bytes()).try(&mut stderr); 
+                    stdout.write("\n".as_bytes()).try(&mut stderr); 
+                    stdout.flush().try(&mut stderr);
+                },
             }
         }
     }
