@@ -165,7 +165,7 @@ pub fn e_expr(token_list: &[Token]) -> Result<IntermediateResult, ParseError> {
                 t1.tokens_read += t2.tokens_read + 1;
             }
             Token::Number(ref n) => return Err(ParseError::UnexpectedToken(n.clone(),"operator")),
-            _ => return break,
+            _ => break,
         };
         index = t1.tokens_read;
     }
