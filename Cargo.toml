@@ -8,6 +8,10 @@ name = "mtxt"
 path = "src/bin/mtxt.rs"
 
 [[bin]]
+name = "calc"
+path = "src/bin/calc.rs"
+
+[[bin]]
 name = "cur"
 path = "src/bin/cur.rs"
 
