@@ -7,8 +7,9 @@ use std::env;
 use std::fs::File;
 use std::path::Path;
 use std::error::Error;
+use std::process::exit;
 
-use coreutils::extra::{OptionalExt, WriteExt, fail};
+use coreutils::extra::{OptionalExt, WriteExt};
 
 static MAN_PAGE: &'static str = r#"
     NAME
@@ -49,7 +50,7 @@ fn main() {
 
     let mut flags = Flags::new();
     let mut pattern = String::new();
-    let mut files = Vec::with_capacity(args.len()-1);
+    let mut files = Vec::with_capacity(args.len());
     for arg in args {
         if arg.starts_with("-") {
             match arg.as_str() {
@@ -58,23 +59,34 @@ fn main() {
                 },
                 "-n" | "--line-number" => flags.line_numbers = true,
                 _ => {
-                    fail(&format!("Unkown option: {}", &arg), &mut stderr);
+                    stderr.write(b"Unkown option: ").try(&mut stderr);
+                    stderr.write(arg.as_bytes()).try(&mut stderr);
+                    stderr.write(b"\n").try(&mut stderr);
+                    let _ = stderr.flush();
+                    exit(1);
                 }
             }
-        } else if &pattern == "" {
+        } else if pattern.is_empty() {
             pattern = arg.clone();
         } else {
             match File::open(&Path::new(&arg)) {
                 Ok(f) => files.push(f),
                 Err(e) => {
-                    fail(&format!("Error opening {}: {}", &arg, e.description()), &mut stderr);
+                    stderr.write(b"Error opening ").try(&mut stderr);
+                    stderr.write(arg.as_bytes()).try(&mut stderr);
+                    stderr.write(b": ").try(&mut stderr);
+                    stderr.write(e.description().as_bytes()).try(&mut stderr);
+                    stderr.write(b"\n").try(&mut stderr);
+                    let _ = stderr.flush();
+                    exit(1);
                 }
             }
         }
     }
 
-    if &pattern == "" {
-        fail("You must provide a pattern", &mut stderr);
+    if pattern.is_empty() {
+        stderr.write_all(b"You must provide a pattern\n").try(&mut stderr);
+        exit(1);
     }
 
     if files.is_empty() {

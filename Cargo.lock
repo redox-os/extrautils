@@ -1,0 +1,12 @@
+[root]
+name = "extrautils"
+version = "0.1.0"
+dependencies = [
+ "coreutils 0.1.0 (git+https://github.com/redox-os/coreutils.git)",
+]
+
+[[package]]
+name = "coreutils"
+version = "0.1.0"
+source = "git+https://github.com/redox-os/coreutils.git#2145a9e9959a77072fbfe7a44ce0c1e649b465e6"
+
