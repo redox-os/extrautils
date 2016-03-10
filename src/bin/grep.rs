@@ -15,7 +15,7 @@ static MAN_PAGE: &'static str = r#"
     NAME
         grep - print lines matching a pattern
     SYNOPSIS
-        wc [-h | --help] [-n --line-number] PATTERN [FILE...]
+        grep [-h | --help] [-n --line-number] PATTERN [FILE...]
     DESCRIPTION
         grep searches the named input FILEs for lines containing a match to the given PATTERN. If no files are specified, grep searches the standard input. grep prints the matching lines.
 
