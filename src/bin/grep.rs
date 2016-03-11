@@ -90,7 +90,7 @@ fn main() {
     }
 
     if files.is_empty() {
-        do_simple_search(stdin, &pattern, &mut stdout, &mut stderr, flags);
+        do_simple_search(BufReader::new(stdin), &pattern, &mut stdout, &mut stderr, flags);
     } else {
         for f in files {
             do_simple_search(BufReader::new(f), &pattern, &mut stdout, &mut stderr, flags);
