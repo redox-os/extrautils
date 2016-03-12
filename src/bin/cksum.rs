@@ -86,6 +86,7 @@ fn main() {
 
     let mut binary_mode = false;
 
+    let mut file_given = false;
     for i in args.skip(1) {
         match i.as_str() {
             // Print the help page.
@@ -97,11 +98,17 @@ fn main() {
             // Read from stdin.
             "-" => {
                 stdin().read_to_end(&mut buf).try(&mut stderr);
+                file_given = true;
             }
             file => {
                 File::open(file).try(&mut stderr).read_to_end(&mut buf).try(&mut stderr);
+                file_given = true;
             },
         }
+    }
+
+    if ! file_given {
+        stdin().read_to_end(&mut buf).try(&mut stderr);
     }
 
     // Hash 'em all!
