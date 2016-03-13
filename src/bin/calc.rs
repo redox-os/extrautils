@@ -56,7 +56,7 @@ impl IntermediateResult {
     fn new(value: f64, tokens_read: usize) -> Self {
         IntermediateResult {
             value: value,
-            tokens_read: tokens_read, 
+            tokens_read: tokens_read,
         }
     }
 }
@@ -74,7 +74,7 @@ impl OperatorFunctions for char {
         self == '/' ||
         self == '^' ||
         self == '(' ||
-        self == ')' 
+        self == ')'
     }
 
     fn operator_type(self) -> Token {
@@ -151,7 +151,7 @@ fn consume_until_new_token(input: &[char]) -> String {
 pub fn e_expr(token_list: &[Token]) -> Result<IntermediateResult, ParseError> {
     let mut t1 = try!(t_expr(token_list));
     let mut index = t1.tokens_read;
-    
+
     while index < token_list.len() {
         match token_list[index] {
             Token::Plus => {
@@ -203,9 +203,6 @@ pub fn t_expr(token_list: &[Token]) -> Result<IntermediateResult, ParseError> {
 
 // Exponentiation
 pub fn f_expr(token_list: &[Token]) -> Result<IntermediateResult, ParseError> {
-    let g1 = try!(g_expr(token_list));
-    // TODO: uncomment all of this once I can figure out why powf won't work
-    /*
     let mut g1 = try!(g_expr(token_list));
     let mut index = g1.tokens_read;
     let token_len = token_list.len();
@@ -221,7 +218,6 @@ pub fn f_expr(token_list: &[Token]) -> Result<IntermediateResult, ParseError> {
         }
         index = g1.tokens_read;
     }
-    */
     Ok(g1)
 }
 
@@ -334,14 +330,12 @@ mod test {
         assert_eq!(tokenize("(120/5)/4/(3/2)").and_then(parse).unwrap(), "4");
     }
 
-    /*
     #[test]
     fn exponentiation() {
         assert_eq!(tokenize("3^2").and_then(parse).unwrap(), "9");
         assert_eq!(tokenize("2^3^2").and_then(parse).unwrap(), "512");
         assert_eq!(tokenize("2^(2+1)^2").and_then(parse).unwrap(), "512");
     }
-    */
 }
 
 fn eval(input: &str) -> String {
@@ -376,8 +370,8 @@ fn main() {
             match input.trim() {
                 "exit" => break,
                 s => {
-                    stdout.write(eval(s).as_bytes()).try(&mut stderr); 
-                    stdout.write("\n".as_bytes()).try(&mut stderr); 
+                    stdout.write(eval(s).as_bytes()).try(&mut stderr);
+                    stdout.write("\n".as_bytes()).try(&mut stderr);
                     stdout.flush().try(&mut stderr);
                 },
             }
