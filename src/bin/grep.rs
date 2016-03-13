@@ -59,7 +59,7 @@ fn main() {
                 },
                 "-n" | "--line-number" => flags.line_numbers = true,
                 _ => {
-                    stderr.write(b"Unkown option: ").try(&mut stderr);
+                    stderr.write(b"Unknown option: ").try(&mut stderr);
                     stderr.write(arg.as_bytes()).try(&mut stderr);
                     stderr.write(b"\n").try(&mut stderr);
                     let _ = stderr.flush();
