@@ -1,10 +1,9 @@
 #![deny(warnings)]
 extern crate coreutils;
-use coreutils::extra::OptionalExt;
+use coreutils::extra::{OptionalExt,WriteExt};
 use std::env::args;
 use std::io;
 use std::io::Write;
-//use std::rand::FloatMath::*;
 
 #[derive(Debug, Clone)]
 pub enum Token {
@@ -92,8 +91,8 @@ impl OperatorFunctions for char {
 }
 
 pub fn tokenize(input: &str) -> Result<Vec<Token>, ParseError> {
-    // CONSIDER: any smarter way to guess an initial capacity?
-    let mut tokens: Vec<Token> = Vec::with_capacity(25);
+    // CONSIDER: input.len() too generous?
+    let mut tokens = Vec::with_capacity(input.len());
 
     // TODO: Not this. Modify to use iterator
     let chars: Vec<char> = input.chars().collect();
@@ -101,7 +100,7 @@ pub fn tokenize(input: &str) -> Result<Vec<Token>, ParseError> {
     let input_length = chars.len();
     let mut current_pos = 0;
     while current_pos < input_length {
-        let c : char = chars[current_pos];
+        let c = chars[current_pos];
         if c.is_digit(10) {
             let token_string = consume_number(&chars[current_pos..]);
             current_pos += token_string.len();
@@ -268,7 +267,7 @@ pub fn g_expr(token_list: &[Token]) -> Result<IntermediateResult, ParseError> {
 }
 
 pub fn parse(tokens: Vec<Token>) -> Result<String, ParseError> {
-    e_expr(&tokens[..]).map(|answer| answer.value.to_string())
+    e_expr(&tokens).map(|answer| answer.value.to_string())
 }
 
 #[cfg(test)]
@@ -342,9 +341,9 @@ fn eval(input: &str) -> String {
     match tokenize(input).and_then(parse) {
         Ok(s) => s,
         Err(e) => match e {
-            ParseError::InvalidNumber(s) => ["Invalid number: ", s.as_str() ].join(""),
-            ParseError::UnrecognizedToken(s) => ["Unrecognized token: ", s.as_str()].join(""),
-            ParseError::UnexpectedToken(found, expected) => ["Unexpected token: expected [", expected, "] but found '", found.as_str(), "'"].join(""),
+            ParseError::InvalidNumber(s) => ["Error: Invalid number: ", s.as_str() ].concat(),
+            ParseError::UnrecognizedToken(s) => ["Error: Unrecognized token: ", s.as_str()].concat(),
+            ParseError::UnexpectedToken(found, expected) => ["Error: Unexpected token: expected [", expected, "] but found '", found.as_str(), "'"].concat(),
             ParseError::UnexpectedEndOfInput => "Error: Unexpected end of input.".to_owned(),
             ParseError::OtherError(s) => s,
         }
@@ -358,7 +357,7 @@ fn main() {
     let mut stderr = io::stderr();
     if args.len() > 1 {
         let input: Vec<String> = args.skip(1).collect();
-        println!("{}", eval(&input.join("")));
+        stdout.writeln(eval(&input.join("")).as_bytes()).try(&mut stderr);
     } else {
         let prompt = "[]> ".as_bytes();
         loop {
@@ -370,8 +369,7 @@ fn main() {
             match input.trim() {
                 "exit" => break,
                 s => {
-                    stdout.write(eval(s).as_bytes()).try(&mut stderr);
-                    stdout.write("\n".as_bytes()).try(&mut stderr);
+                    stdout.writeln(eval(s).as_bytes()).try(&mut stderr); 
                     stdout.flush().try(&mut stderr);
                 },
             }
