@@ -38,10 +38,8 @@ static LONG_HELP: &'static str = r#"
 
 fn main() {
     let mut args = args().skip(1);
-    let stdout = io::stdout();
-    let mut stdout = stdout.lock();
-    let stdin = io::stdin();
-    let mut stdin = stdin.lock();
+    let mut stdout = io::stdout().lock();
+    let mut stdin = io::stdin().lock();
     let mut stderr = io::stderr();
 
     if let Some(x) = args.next() {
@@ -60,9 +58,6 @@ fn main() {
         if let Some(x) = args.next() {
             let mut file = File::open(Path::new(x.as_str())).try(&mut stderr);
             run(&mut file, &mut stdin, &mut stdout, &mut stderr);
-        } else {
-            writeln!(stderr, "Readin from stdin is not yet supported").try(&mut stderr);
-            //run(&mut stdin, t, &mut stdout, &mut stderr);
         }
     } else {
         writeln!(stderr, "Readin from stdin is not yet supported").try(&mut stderr);
@@ -98,8 +93,6 @@ impl Buffer {
     }
 
     fn draw(&self, to: &mut RawTerminal<&mut StdoutLock>, w: u16, h: u16) -> std::io::Result<usize> {
-        let _ = w;
-
         try!(to.goto(0, 0));
 
         let mut y = 0;
@@ -114,7 +107,11 @@ impl Buffer {
         };
 
         for line in lines {
-            bytes_written += try!(to.write(line.as_bytes()));
+            if line.len() > w as usize {
+                bytes_written += try!(to.write(line[..w as usize].as_bytes()));
+            } else {
+                bytes_written += try!(to.write(line.as_bytes()));
+            }
 
             y += 1;
             try!(to.goto(0, y));
