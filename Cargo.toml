@@ -27,5 +27,13 @@ path = "src/bin/grep.rs"
 name = "rem"
 path = "src/bin/rem.rs"
 
+[[bin]]
+name = "less"
+path = "src/bin/less.rs"
+
 [dependencies.coreutils]
 git = "https://github.com/redox-os/coreutils.git"
+
+[dependencies.termion]
+git = "https://github.com/Ticki/termion.git"
+features = ["nightly"]
