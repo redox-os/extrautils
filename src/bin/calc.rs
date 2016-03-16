@@ -201,6 +201,7 @@ pub fn t_expr(token_list: &[Token]) -> Result<IntermediateResult, ParseError> {
 }
 
 // Exponentiation
+#[cfg(not(target_os = "redox"))]
 pub fn f_expr(token_list: &[Token]) -> Result<IntermediateResult, ParseError> {
     let mut g1 = try!(g_expr(token_list));
     let mut index = g1.tokens_read;
@@ -218,6 +219,11 @@ pub fn f_expr(token_list: &[Token]) -> Result<IntermediateResult, ParseError> {
         index = g1.tokens_read;
     }
     Ok(g1)
+}
+
+#[cfg(target_os = "redox")]
+pub fn f_expr(_token_list: &[Token]) -> Result<IntermediateResult, ParseError> {
+    Err(ParseError::UnexpectedEndOfInput)
 }
 
 // Numbers and parenthesized expressions
