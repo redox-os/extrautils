@@ -61,7 +61,7 @@ fn main() {
         }
     } else {
         writeln!(stderr, "Readin from stdin is not yet supported").try(&mut stderr);
-        //run(&mut stdin, t, &mut stdout, &mut stderr);
+        //run(&mut stdin, &mut stdin, &mut stdout, &mut stderr);
     };
 }
 
@@ -124,13 +124,13 @@ impl Buffer {
     }
 
     fn scroll_up(&mut self) {
-        if self.y_off != 0 {
+        if self.y_off > 0 {
             self.y_off -= 1;
         }
     }
 
-    fn scroll_down(&mut self) {
-        if (self.y_off as usize) < self.lines.len() - 1 {
+    fn scroll_down(&mut self, height: u16) {
+        if ((self.y_off + height) as usize) <= self.lines.len() {
             self.y_off += 1;
         }
     }
@@ -145,10 +145,6 @@ fn run(file: &mut Read, controls: &mut Read, stdout: &mut StdoutLock, stderr: &m
     };
 
     stdout.clear().try(stderr);
-    stdout.goto(0, h - 1).try(stderr);
-    stdout.style(Style::Bold).try(stderr);
-    stdout.write(b"Press q to exit.").try(stderr);
-    stdout.goto(0, h - 1).try(stderr);
     stdout.reset().try(stderr);
 
     let mut buffer = Buffer::new();
@@ -156,26 +152,30 @@ fn run(file: &mut Read, controls: &mut Read, stdout: &mut StdoutLock, stderr: &m
 
     buffer.draw(&mut stdout, w, h - 1).try(stderr);
     stdout.goto(0, h - 1).try(stderr);
+    stdout.style(Style::Bold).try(stderr);
+    stdout.write(b"Press q to exit.").try(stderr);
+    stdout.reset().try(stderr);
     stdout.flush().try(stderr);
 
     for c in controls.keys() {
         match c {
             Key::Char('q') => {
                 stdout.clear().try(stderr);
+                stdout.reset().try(stderr);
                 stdout.goto(0, 0).try(stderr);
                 return
             },
             Key::Up => buffer.scroll_up(),
-            Key::Down => buffer.scroll_down(),
+            Key::Down => buffer.scroll_down(h),
             _ => {},
         }
 
         stdout.clear().try(stderr);
+        stdout.reset().try(stderr);
         buffer.draw(&mut stdout, w, h - 1).try(stderr);
         stdout.goto(0, h - 1).try(stderr);
         stdout.style(Style::Bold).try(stderr);
         stdout.write(b"Press q to exit.").try(stderr);
-        stdout.goto(0, h - 1).try(stderr);
         stdout.reset().try(stderr);
         stdout.flush().try(stderr);
     }
