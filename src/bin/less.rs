@@ -12,7 +12,7 @@ use std::path::Path;
 
 use coreutils::extra::OptionalExt;
 
-use termion::{terminal_size, TermRead, TermWrite, IntoRawMode, Key, Style, RawTerminal};
+use termion::{terminal_size, TermRead, TermWrite, IntoRawMode, Color, Key, RawTerminal};
 
 static LONG_HELP: &'static str = r#"
     NAME
@@ -152,7 +152,8 @@ fn run(file: &mut Read, controls: &mut Read, stdout: &mut StdoutLock, stderr: &m
 
     buffer.draw(&mut stdout, w, h - 1).try(stderr);
     stdout.goto(0, h - 1).try(stderr);
-    stdout.style(Style::Bold).try(stderr);
+    stdout.bg_color(Color::White).try(stderr);
+    stdout.color(Color::Black).try(stderr);
     stdout.write(b"Press q to exit.").try(stderr);
     stdout.reset().try(stderr);
     stdout.flush().try(stderr);
@@ -174,7 +175,8 @@ fn run(file: &mut Read, controls: &mut Read, stdout: &mut StdoutLock, stderr: &m
         stdout.reset().try(stderr);
         buffer.draw(&mut stdout, w, h - 1).try(stderr);
         stdout.goto(0, h - 1).try(stderr);
-        stdout.style(Style::Bold).try(stderr);
+        stdout.bg_color(Color::White).try(stderr);
+        stdout.color(Color::Black).try(stderr);
         stdout.write(b"Press q to exit.").try(stderr);
         stdout.reset().try(stderr);
         stdout.flush().try(stderr);
