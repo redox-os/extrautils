@@ -222,8 +222,23 @@ pub fn f_expr(token_list: &[Token]) -> Result<IntermediateResult, ParseError> {
 }
 
 #[cfg(target_os = "redox")]
-pub fn f_expr(_token_list: &[Token]) -> Result<IntermediateResult, ParseError> {
-    Err(ParseError::UnexpectedEndOfInput)
+pub fn f_expr(token_list: &[Token]) -> Result<IntermediateResult, ParseError> {
+    let mut g1 = try!(g_expr(token_list));
+    let mut index = g1.tokens_read;
+    let token_len = token_list.len();
+    while index < token_len {
+        match token_list[index] {
+            Token::Exponent => {
+                let f = try!(f_expr(&token_list[index+1..]));
+                //TODO: g1.value = g1.value.powf(f.value);
+                g1.tokens_read += f.tokens_read + 1;
+            }
+            Token::Number(ref n) => return Err(ParseError::UnexpectedToken(n.clone(),"operator")),
+            _ => break,
+        }
+        index = g1.tokens_read;
+    }
+    Ok(g1)
 }
 
 // Numbers and parenthesized expressions
@@ -375,7 +390,7 @@ fn main() {
             match input.trim() {
                 "exit" => break,
                 s => {
-                    stdout.writeln(eval(s).as_bytes()).try(&mut stderr); 
+                    stdout.writeln(eval(s).as_bytes()).try(&mut stderr);
                     stdout.flush().try(&mut stderr);
                 },
             }
