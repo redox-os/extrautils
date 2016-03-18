@@ -38,8 +38,10 @@ static LONG_HELP: &'static str = r#"
 
 fn main() {
     let mut args = args().skip(1);
-    let mut stdout = io::stdout().lock();
-    let mut stdin = io::stdin().lock();
+    let stdout = io::stdout();
+    let mut stdout = stdout.lock();
+    let stdin = io::stdin();
+    let mut stdin = stdin.lock();
     let mut stderr = io::stderr();
 
     if let Some(x) = args.next() {
