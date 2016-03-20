@@ -1,0 +1,26 @@
+[root]
+name = "extrautils"
+version = "0.1.0"
+dependencies = [
+ "extra 0.1.0 (git+https://github.com/redox-os/libextra.git)",
+ "termion 0.1.0 (git+https://github.com/Ticki/termion.git)",
+]
+
+[[package]]
+name = "extra"
+version = "0.1.0"
+source = "git+https://github.com/redox-os/libextra.git#1ace7bd1204b3056094fa42c7f7a2f2e0bb50499"
+
+[[package]]
+name = "libc"
+version = "0.2.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "termion"
+version = "0.1.0"
+source = "git+https://github.com/Ticki/termion.git#28a95cf447b862b1660abd417c2325b2447f49df"
+dependencies = [
+ "libc 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+

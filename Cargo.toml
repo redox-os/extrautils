@@ -8,6 +8,10 @@ name = "mtxt"
 path = "src/bin/mtxt.rs"
 
 [[bin]]
+name = "calc"
+path = "src/bin/calc.rs"
+
+[[bin]]
 name = "cur"
 path = "src/bin/cur.rs"
 
@@ -16,8 +20,20 @@ name = "cksum"
 path = "src/bin/cksum.rs"
 
 [[bin]]
+name = "grep"
+path = "src/bin/grep.rs"
+
+[[bin]]
 name = "rem"
 path = "src/bin/rem.rs"
 
+[[bin]]
+name = "less"
+path = "src/bin/less.rs"
+
 [dependencies.extra]
 git = "https://github.com/redox-os/libextra.git"
+
+[dependencies.termion]
+git = "https://github.com/Ticki/termion.git"
+features = ["nightly"]
