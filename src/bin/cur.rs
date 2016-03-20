@@ -1,11 +1,12 @@
 #![deny(warnings)]
 
-extern crate coreutils;
+extern crate extra;
 
 use std::env::args;
 use std::io::{self, Write, Read};
 
-use coreutils::extra::{OptionalExt, fail};
+use extra::option::OptionalExt;
+use extra::io::fail;
 
 static HELP: &'static str = r#"
     NAME

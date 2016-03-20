@@ -1,14 +1,15 @@
 #![deny(warnings)]
 #![feature(io)]
 
-extern crate coreutils;
+extern crate extra;
 
 use std::ascii::AsciiExt;
 use std::env::args;
 use std::io::{self, Write, Read};
 use std::process::exit;
 
-use coreutils::extra::{WriteExt, OptionalExt, fail};
+use extra::option::OptionalExt;
+use extra::io::{fail, WriteExt};
 
 static HELP: &'static str = r#"
     NAME
@@ -104,16 +105,16 @@ fn main() {
         // If -u is set, convert to uppercase
         if to_uppercase {
             for uppercase in i.to_uppercase().filter(|x| !strip_non_ascii || x.is_ascii() ) {
-                stdout.put_char(uppercase).try(&mut stderr);
+                stdout.write_char(uppercase).try(&mut stderr);
             }
         // If -l is set, convert to lowercase
         } else if to_lowercase {
             for lowercase in i.to_lowercase().filter(|x| !strip_non_ascii || x.is_ascii()) {
-                stdout.put_char(lowercase).try(&mut stderr);
+                stdout.write_char(lowercase).try(&mut stderr);
             }
         // If -a is set, strip non-ASCII.
         } else if !strip_non_ascii || strip_non_ascii && i.is_ascii() {
-            stdout.put_char(i).try(&mut stderr);
+            stdout.write_char(i).try(&mut stderr);
         }
     }
 }

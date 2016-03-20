@@ -1,7 +1,7 @@
 #![deny(warnings)]
 
-extern crate coreutils;
-use coreutils::extra::OptionalExt;
+extern crate extra;
+use extra::option::OptionalExt;
 
 use std::env::args;
 use std::fs::File;
