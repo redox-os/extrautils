@@ -168,8 +168,8 @@ fn run(file: &mut Read, controls: &mut Read, stdout: &mut StdoutLock, stderr: &m
                 stdout.goto(0, 0).try(stderr);
                 return
             },
-            Key::Up => buffer.scroll_up(),
-            Key::Down => buffer.scroll_down(h),
+            Key::Up | Key::Char('k') => buffer.scroll_up(),
+            Key::Down | Key::Char('j') => buffer.scroll_down(h),
             _ => {},
         }
 
