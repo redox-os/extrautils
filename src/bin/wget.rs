@@ -1,6 +1,6 @@
 use std::env;
-use std::fs::File;
 use std::io::{stderr, Read, Write};
+use std::net::TcpStream;
 use std::process;
 use std::str;
 
@@ -16,14 +16,9 @@ fn main() {
                 path.push_str(part);
             }
 
-            let mut remote_parts = remote.split(':');
-            let host = remote_parts.next().unwrap_or("127.0.0.1");
-            let port = remote_parts.next().unwrap_or("80");
+            write!(stderr(), "* Connecting to {}\n", remote).unwrap();
 
-            write!(stderr(), "* Connecting to {}:{}\n", host, port).unwrap();
-
-            let tcp = format!("tcp:{}:{}", host, port);
-            let mut stream = File::open(tcp).unwrap();
+            let mut stream = TcpStream::connect(&remote).unwrap();
 
             write!(stderr(), "* Requesting {}\n", path).unwrap();
 
