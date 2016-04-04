@@ -28,8 +28,8 @@ fn main() {
 
             write!(stderr(), "* Waiting for response\n").unwrap();
 
-            let mut response = [0; 8192];
-            let count = stream.read(&mut response).unwrap();
+            let mut response = Vec::new();
+            let count = stream.read_to_end(&mut response).unwrap();
 
             let mut headers = true;
             for line in unsafe { str::from_utf8_unchecked(&response[.. count]) }.lines() {
