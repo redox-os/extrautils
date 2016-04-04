@@ -16,16 +16,34 @@ fn main() {
             let host = remote_parts.next().unwrap_or("127.0.0.1");
             let port = remote_parts.next().unwrap_or("80");
 
+            write!(stderr(), "* Connecting to {}:{}\n", host, port).unwrap();
+
             let tcp = format!("tcp:{}:{}", host, port);
             let mut stream = File::open(tcp).unwrap();
+
+            write!(stderr(), "* Requesting {}\n", path).unwrap();
 
             let request = format!("GET {} HTTP/1.0\r\n\r\n", path);
             stream.write(request.as_bytes()).unwrap();
             stream.flush().unwrap();
 
-            let mut bytes = [0; 8192];
-            let count = stream.read(&mut bytes).unwrap();
-            println!("{}", unsafe { str::from_utf8_unchecked(&bytes[.. count]) });
+            write!(stderr(), "* Waiting for response\n").unwrap();
+
+            let mut response = [0; 8192];
+            let count = stream.read(&mut response).unwrap();
+
+            let mut headers = true;
+            for line in unsafe { str::from_utf8_unchecked(&response[.. count]) }.lines() {
+                if headers {
+                    if line.is_empty() {
+                        headers = false;
+                    } else {
+                        write!(stderr(), "> {}\n", line).unwrap();
+                    }
+                } else {
+                    println!("{}", line);
+                }
+            }
         } else {
             write!(stderr(), "wget: unknown scheme '{}'\n", scheme).unwrap();
             process::exit(1);
