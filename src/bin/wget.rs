@@ -17,15 +17,14 @@ fn main() {
             let port = remote_parts.next().unwrap_or("80");
 
             let tcp = format!("tcp:{}:{}", host, port);
-            write!(stderr(), "{}\n", tcp).unwrap();
-
             let mut stream = File::open(tcp).unwrap();
-            write!(stream, "GET {} HTTP/1.0\r\n\r\n", path).unwrap();
+
+            let request = format!("GET {} HTTP/1.0\r\n\r\n", path);
+            stream.write(request.as_bytes()).unwrap();
             stream.flush().unwrap();
 
-            let mut bytes = [0; 65536];
+            let mut bytes = [0; 8192];
             let count = stream.read(&mut bytes).unwrap();
-
             println!("{}", unsafe { str::from_utf8_unchecked(&bytes[.. count]) });
         } else {
             write!(stderr(), "wget: unknown scheme '{}'\n", scheme).unwrap();
