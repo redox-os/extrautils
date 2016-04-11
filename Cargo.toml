@@ -4,10 +4,6 @@ version = "0.1.0"
 authors = ["Ticki <Ticki@users.noreply.github.com>"]
 
 [[bin]]
-name = "mtxt"
-path = "src/bin/mtxt.rs"
-
-[[bin]]
 name = "calc"
 path = "src/bin/calc.rs"
 
@@ -26,6 +22,14 @@ path = "src/bin/grep.rs"
 [[bin]]
 name = "less"
 path = "src/bin/less.rs"
+
+[[bin]]
+name = "man"
+path = "src/bin/man.rs"
+
+[[bin]]
+name = "mtxt"
+path = "src/bin/mtxt.rs"
 
 [[bin]]
 name = "rem"

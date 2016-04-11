@@ -10,47 +10,47 @@ use std::time::Duration;
 
 use extra::option::OptionalExt;
 
-static LONG_HELP: &'static str = r#"
-    NAME
-        rem - set a count-down.
-    SYNOPSIS
-        rem [-h | --help] [-m N | --minutes N] [-H N | --hours N] [-s N | --seconds N] [-M N | --milliseconds N] [-n | --len] [-b | --blink]
-    DESCRIPTION
-        This utility lets you set a count-down with a progress bar. The options can be given in combination, adding together the durations given.
-    OPTIONS
-        --help
-            Print this manual page.
-        -h
-            Print short help page.
-        -m N
-        --minutes N
-            Wait N minutes.
-        -H N
-        --hours N
-            Wait N hours.
-        -s N
-        --seconds N
-            Wait N seconds.
-        -M N
-        --milliseconds N
-            Wait N milliseconds.
-        -n N
-        --len N
-            Set the length of the progress bar to N.
-        -b
-        --blink
-            Blink with a red banner when done.
-    AUTHOR
-        This program was written by Ticki for Redox OS. Bugs, issues, or feature requests should be reported in the Github repository, 'redox-os/extrautils'.
-    COPYRIGHT
-        Copyright (c) 2016 Ticki
+static LONG_HELP: &'static str = /* @MANSTART{rem} */ r#"
+NAME
+    rem - set a count-down.
+SYNOPSIS
+    rem [-h | --help] [-m N | --minutes N] [-H N | --hours N] [-s N | --seconds N] [-M N | --milliseconds N] [-n | --len] [-b | --blink]
+DESCRIPTION
+    This utility lets you set a count-down with a progress bar. The options can be given in combination, adding together the durations given.
+OPTIONS
+    --help
+        Print this manual page.
+    -h
+        Print short help page.
+    -m N
+    --minutes N
+        Wait N minutes.
+    -H N
+    --hours N
+        Wait N hours.
+    -s N
+    --seconds N
+        Wait N seconds.
+    -M N
+    --milliseconds N
+        Wait N milliseconds.
+    -n N
+    --len N
+        Set the length of the progress bar to N.
+    -b
+    --blink
+        Blink with a red banner when done.
+AUTHOR
+    This program was written by Ticki for Redox OS. Bugs, issues, or feature requests should be reported in the Github repository, 'redox-os/extrautils'.
+COPYRIGHT
+    Copyright (c) 2016 Ticki
 
-        Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
-        The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
-        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-"#;
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+"#; /* @MANEND */
 
 static SHORT_HELP: &'static str = r#"
     rem - set a count-down.
