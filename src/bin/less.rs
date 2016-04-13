@@ -69,13 +69,13 @@ fn main() {
             },
             filename => {
                 let mut file = File::open(Path::new(filename)).try(&mut stderr);
-                run(&mut file, &mut stdin, &mut stdout, &mut stderr);
+                run(filename, &mut file, &mut stdin, &mut stdout, &mut stderr);
             }
         }
 
         if let Some(x) = args.next() {
             let mut file = File::open(Path::new(x.as_str())).try(&mut stderr);
-            run(&mut file, &mut stdin, &mut stdout, &mut stderr);
+            run(x.as_str(), &mut file, &mut stdin, &mut stdout, &mut stderr);
         }
     } else {
         writeln!(stderr, "Readin from stdin is not yet supported").try(&mut stderr);
@@ -154,7 +154,7 @@ impl Buffer {
     }
 }
 
-fn run(file: &mut Read, controls: &mut Read, stdout: &mut StdoutLock, stderr: &mut Stderr) {
+fn run(path: &str, file: &mut Read, controls: &mut Read, stdout: &mut StdoutLock, stderr: &mut Stderr) {
     let mut stdout = stdout.into_raw_mode().try(stderr);
 
     let (w, h) = {
@@ -172,7 +172,8 @@ fn run(file: &mut Read, controls: &mut Read, stdout: &mut StdoutLock, stderr: &m
     stdout.goto(0, h - 1).try(stderr);
     stdout.bg_color(Color::White).try(stderr);
     stdout.color(Color::Black).try(stderr);
-    stdout.write(b"Press q to exit.").try(stderr);
+    stdout.write(path.as_bytes()).try(stderr);
+    stdout.write(b" Press q to exit.").try(stderr);
     stdout.reset().try(stderr);
     stdout.flush().try(stderr);
 
@@ -195,7 +196,8 @@ fn run(file: &mut Read, controls: &mut Read, stdout: &mut StdoutLock, stderr: &m
         stdout.goto(0, h - 1).try(stderr);
         stdout.bg_color(Color::White).try(stderr);
         stdout.color(Color::Black).try(stderr);
-        stdout.write(b"Press q to exit.").try(stderr);
+        stdout.write(path.as_bytes()).try(stderr);
+        stdout.write(b" Press q to exit.").try(stderr);
         stdout.reset().try(stderr);
         stdout.flush().try(stderr);
     }
