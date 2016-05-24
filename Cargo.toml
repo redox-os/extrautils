@@ -36,6 +36,10 @@ name = "rem"
 path = "src/bin/rem.rs"
 
 [[bin]]
+name = "watch"
+path = "src/bin/watch.rs"
+
+[[bin]]
 name = "wget"
 path = "src/bin/wget.rs"
 
