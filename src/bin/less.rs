@@ -14,27 +14,43 @@ use extra::option::OptionalExt;
 
 use termion::{terminal_size, TermRead, TermWrite, IntoRawMode, Color, Key, RawTerminal};
 
-static LONG_HELP: &'static str = r#"
-    NAME
-        less - view a text file.
-    SYNOPSIS
-        less [-h | --help] [input]
-    DESCRIPTION
-        This utility views text files. If no input file is specified as an argument, standard input is used.
-    OPTIONS
-        --help, -h
-            Print this manual page.
-    AUTHOR
-        This program was written by MovingtoMars for Redox OS. Bugs, issues, or feature requests should be reported in the Github repository, 'redox-os/extrautils'.
-    COPYRIGHT
-        Copyright (c) 2016 MovingtoMars
+static LONG_HELP: &'static str = /* @MANSTART{less} */ r#"
+NAME
+    less - view a text file.
 
-        Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+SYNOPSIS
+    less [-h | --help] [input]
 
-        The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+DESCRIPTION
+    This utility views text files. If no input file is specified as an argument, standard input is
+    used.
 
-        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-"#;
+OPTIONS
+    --help, -h
+        Print this manual page.
+
+AUTHOR
+    This program was written by MovingtoMars for Redox OS. Bugs, issues, or feature requests should
+    be reported in the Github repository, 'redox-os/extrautils'.
+
+COPYRIGHT
+    Copyright (c) 2016 MovingtoMars
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy of this software
+    and associated documentation files (the "Software"), to deal in the Software without
+    restriction, including without limitation the rights to use, copy, modify, merge, publish,
+    distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all copies or
+    substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+    BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+    NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+    DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+"#; /* @MANEND */
 
 fn main() {
     let mut args = args().skip(1);
@@ -53,13 +69,13 @@ fn main() {
             },
             filename => {
                 let mut file = File::open(Path::new(filename)).try(&mut stderr);
-                run(&mut file, &mut stdin, &mut stdout, &mut stderr);
+                run(filename, &mut file, &mut stdin, &mut stdout, &mut stderr);
             }
         }
 
         if let Some(x) = args.next() {
             let mut file = File::open(Path::new(x.as_str())).try(&mut stderr);
-            run(&mut file, &mut stdin, &mut stdout, &mut stderr);
+            run(x.as_str(), &mut file, &mut stdin, &mut stdout, &mut stderr);
         }
     } else {
         writeln!(stderr, "Readin from stdin is not yet supported").try(&mut stderr);
@@ -138,7 +154,7 @@ impl Buffer {
     }
 }
 
-fn run(file: &mut Read, controls: &mut Read, stdout: &mut StdoutLock, stderr: &mut Stderr) {
+fn run(path: &str, file: &mut Read, controls: &mut Read, stdout: &mut StdoutLock, stderr: &mut Stderr) {
     let mut stdout = stdout.into_raw_mode().try(stderr);
 
     let (w, h) = {
@@ -156,7 +172,8 @@ fn run(file: &mut Read, controls: &mut Read, stdout: &mut StdoutLock, stderr: &m
     stdout.goto(0, h - 1).try(stderr);
     stdout.bg_color(Color::White).try(stderr);
     stdout.color(Color::Black).try(stderr);
-    stdout.write(b"Press q to exit.").try(stderr);
+    stdout.write(path.as_bytes()).try(stderr);
+    stdout.write(b" Press q to exit.").try(stderr);
     stdout.reset().try(stderr);
     stdout.flush().try(stderr);
 
@@ -179,7 +196,8 @@ fn run(file: &mut Read, controls: &mut Read, stdout: &mut StdoutLock, stderr: &m
         stdout.goto(0, h - 1).try(stderr);
         stdout.bg_color(Color::White).try(stderr);
         stdout.color(Color::Black).try(stderr);
-        stdout.write(b"Press q to exit.").try(stderr);
+        stdout.write(path.as_bytes()).try(stderr);
+        stdout.write(b" Press q to exit.").try(stderr);
         stdout.reset().try(stderr);
         stdout.flush().try(stderr);
     }

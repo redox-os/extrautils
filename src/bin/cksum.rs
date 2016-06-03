@@ -9,37 +9,56 @@ use std::hash::Hasher;
 use std::io::{Write, Read, stdin, stdout, stderr};
 use std::mem;
 
-static HELP: &'static str = r#"
-    NAME
-        cksum - calculate the DJB2 checksum of the input.
-    SYNOPSIS
-        cksum [-h | --help] [-b | --binary] [FILE 1] [FILE 2]...
-    DESCRIPTION
-        This utility is used for calculating the checksum from one or more byte streams (files and/or standard input). The ordering of the arguments do matter.
+static HELP: &'static str = /* @MANSTART{cksum} */ r#"
+NAME
+    cksum - calculate the DJB2 checksum of the input.
 
-        'cksum' differs from the Unix version in multiple ways. Most importantly: it uses DJB2, a streaming non-cryptographic hash function.
+SYNOPSIS
+    cksum [-h | --help] [-b | --binary] [FILE 1] [FILE 2]...
 
-        'cksum' defaults to hexadecimal.
+DESCRIPTION
+    This utility is used for calculating the checksum from one or more byte streams (files and/or
+        standard input). The ordering of the arguments do matter.
 
-        NOTA BENE: This tool should **never** be used as a secure hash function, since DJB2 is non-cryptographic, and easily breakable.
-    OPTIONS
-        -h
-        --help
-            Print this manual page.
-        -b
-        --binary
-            Print the output in base 256.
-    AUTHOR
-        This program was written by Ticki for Redox OS. Bugs, issues, or feature requests should be reported in the Github repository, 'redox-os/extrautils'.
-    COPYRIGHT
-        Copyright (c) 2016 Ticki
+    'cksum' differs from the Unix version in multiple ways. Most importantly: it uses DJB2, a
+    streaming non-cryptographic hash function.
 
-        Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+    'cksum' defaults to hexadecimal.
 
-        The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+    NOTA BENE: This tool should **never** be used as a secure hash function, since DJB2 is
+    non-cryptographic, and easily breakable.
 
-        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-"#;
+OPTIONS
+    -h
+    --help
+        Print this manual page.
+
+    -b
+    --binary
+        Print the output in base 256.
+
+AUTHOR
+    This program was written by Ticki for Redox OS. Bugs, issues, or feature requests should be
+    reported in the Github repository, 'redox-os/extrautils'.
+
+COPYRIGHT
+    Copyright (c) 2016 Ticki
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy of this software
+    and associated documentation files (the "Software"), to deal in the Software without
+    restriction, including without limitation the rights to use, copy, modify, merge, publish,
+    distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all copies or
+    substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+    BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+    NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+    DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+"#; /* @MANEND */
 
 pub struct Djb2 {
     state: u64,

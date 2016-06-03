@@ -4,10 +4,6 @@ version = "0.1.0"
 authors = ["Ticki <Ticki@users.noreply.github.com>"]
 
 [[bin]]
-name = "mtxt"
-path = "src/bin/mtxt.rs"
-
-[[bin]]
 name = "calc"
 path = "src/bin/calc.rs"
 
@@ -28,8 +24,20 @@ name = "less"
 path = "src/bin/less.rs"
 
 [[bin]]
+name = "man"
+path = "src/bin/man.rs"
+
+[[bin]]
+name = "mtxt"
+path = "src/bin/mtxt.rs"
+
+[[bin]]
 name = "rem"
 path = "src/bin/rem.rs"
+
+[[bin]]
+name = "watch"
+path = "src/bin/watch.rs"
 
 [[bin]]
 name = "wget"

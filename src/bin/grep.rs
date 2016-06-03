@@ -12,23 +12,26 @@ use std::process::exit;
 use extra::option::OptionalExt;
 use extra::io::WriteExt;
 
-static MAN_PAGE: &'static str = r#"
-    NAME
-        grep - print lines matching a pattern
-    SYNOPSIS
-        grep [-h | --help] [-n --line-number] PATTERN [FILE...]
-    DESCRIPTION
-        grep searches the named input FILEs for lines containing a match to the given PATTERN. If no files are specified, grep searches the standard input. grep prints the matching lines.
+static MAN_PAGE: &'static str = /* @MANSTART{grep} */ r#"
+NAME
+    grep - print lines matching a pattern
 
-    OPTIONS
-        -h
-        --help
-            Print this manual page.
+SYNOPSIS
+    grep [-h | --help] [-n --line-number] PATTERN [FILE...]
 
-        -n
-        --line-number
-            Prefix each line of output with the line number of the match.
-"#;
+DESCRIPTION
+    grep searches the named input FILEs for lines containing a match to the given PATTERN. If no
+    files are specified, grep searches the standard input. grep prints the matching lines.
+
+OPTIONS
+    -h
+    --help
+        Print this manual page.
+
+    -n
+    --line-number
+        Prefix each line of output with the line number of the match.
+"#; /* @MANEND */
 
 #[derive(Copy, Clone)]
 struct Flags {
