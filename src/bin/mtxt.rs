@@ -1,4 +1,5 @@
 #![deny(warnings)]
+#![feature(io)]
 
 extern crate extra;
 
