@@ -1,5 +1,5 @@
 #![deny(warnings)]
-#![feature(io)]
+#![cfg_attr(not(target_os = "redox"), feature(io))]
 
 extern crate extra;
 
