@@ -185,10 +185,10 @@ fn run(path: &str, file: &mut Read, controls: &mut Read, stdout: &mut StdoutLock
                 stdout.goto(0, 0).try(stderr);
                 return
             },
-            Key::Char('b') => for _i in 0..h {
+            Key::Char('b') => for _i in 1..h {
                 buffer.scroll_up()
             },
-            Key::Char(' ') => for _i in 0..h {
+            Key::Char(' ') => for _i in 1..h {
                 buffer.scroll_down(h)
             },
             Key::Up | Key::Char('k') => buffer.scroll_up(),
