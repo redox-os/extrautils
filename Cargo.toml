@@ -16,6 +16,10 @@ name = "cksum"
 path = "src/bin/cksum.rs"
 
 [[bin]]
+name = "dmesg"
+path = "src/bin/dmesg.rs"
+
+[[bin]]
 name = "grep"
 path = "src/bin/grep.rs"
 
