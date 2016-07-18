@@ -32,6 +32,10 @@ name = "man"
 path = "src/bin/man.rs"
 
 [[bin]]
+name = "mdless"
+path = "src/bin/mdless.rs"
+
+[[bin]]
 name = "mtxt"
 path = "src/bin/mtxt.rs"
 
@@ -51,5 +55,5 @@ path = "src/bin/wget.rs"
 git = "https://github.com/redox-os/libextra.git"
 
 [dependencies.termion]
-git = "https://github.com/Ticki/termion.git"
+git = "https://github.com/jackpot51/termion.git"
 features = ["nightly"]
