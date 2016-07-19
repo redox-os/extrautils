@@ -178,7 +178,7 @@ fn run(path: &str, file: &mut Read, controls: &mut Read, stdout: &mut StdoutLock
     stdout.flush().try(stderr);
 
     for c in controls.keys() {
-        match c {
+        match c.unwrap() {
             Key::Char('q') => {
                 stdout.clear().try(stderr);
                 stdout.reset().try(stderr);
