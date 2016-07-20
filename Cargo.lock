@@ -19,7 +19,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "termion"
 version = "0.1.0"
-source = "git+https://github.com/jackpot51/termion.git#824969544a741c5cb35a364d43a3b4792bf2169a"
+source = "git+https://github.com/jackpot51/termion.git#98866dfb5f38e317c8798c702e4244eecf79b382"
 dependencies = [
  "libc 0.2.14 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
