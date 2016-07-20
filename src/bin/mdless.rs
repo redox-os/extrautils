@@ -5,11 +5,11 @@
 extern crate extra;
 extern crate termion;
 
-use std::cmp::max;
 use std::env::args;
 use std::fs::File;
 use std::io::{self, Write, Read, StdoutLock, Stderr};
-use std::path::Path;
+use std::path::{Path, PathBuf};
+use std::str::Chars;
 
 use extra::option::OptionalExt;
 
@@ -84,122 +84,176 @@ fn main() {
     };
 }
 
-struct Block {
-    c: char,
-    bold: bool,
-    italic: bool,
-    code: bool,
-    link: bool
+//TODO: String in Text
+enum Block {
+    Text(char),
+    Bold(Vec<Block>),
+    Italic(Vec<Block>),
+    Code(Vec<Block>),
+    Link(Vec<Block>, String),
 }
 
 impl Block {
-    fn parse(s: &str) -> Vec<Block> {
+    fn parse_bold(s: &mut Chars) -> Block {
         let mut blocks = Vec::new();
 
-        let mut bold = 0;
-        let mut bolding = 0;
-        let mut code = 0;
-        let mut coding = 0;
-        let mut link = 0;
+        while let Some(c) = s.next() {
+            if c == '*' && s.as_str().chars().next() == Some('*') {
+                let _ = s.next();
+                break;
+            } else {
+                blocks.push(Block::Text(c))
+            }
+        }
 
-        for (_i, c) in s.char_indices() {
+        Block::Bold(blocks)
+    }
+
+    fn parse_italic(s: &mut Chars) -> Block {
+        let mut blocks = Vec::new();
+
+        while let Some(c) = s.next() {
             if c == '*' {
-                if bolding == 0 {
-                    if bold > 0 {
-                        bolding = -1;
-                    }else {
-                        bolding = 1;
-                    }
-                }
+                break;
             } else {
-                bolding = 0;
+                blocks.push(Block::Text(c))
             }
+        }
 
-            if bolding > 0 {
-                bold += bolding;
-            }
+        Block::Italic(blocks)
+    }
 
+    fn parse_code(s: &mut Chars) -> Block {
+        let mut blocks = Vec::new();
+
+        while let Some(c) = s.next() {
             if c == '`' {
-                if coding == 0 {
-                    if code > 0 {
-                        coding = -1;
-                    }else {
-                        coding = 1;
-                    }
-                }
+                break;
             } else {
-                coding = 0;
+                blocks.push(Block::Text(c))
             }
+        }
 
-            if coding > 0 {
-                code += coding;
+        Block::Code(blocks)
+    }
+
+    fn parse_link(s: &mut Chars) -> Block {
+        let mut blocks = Vec::new();
+        let mut link = String::new();
+
+        while let Some(c) = s.next() {
+            match c {
+                ']' => break,
+                _ => blocks.push(Block::Text(c))
             }
+        }
 
-            if c == '[' {
-                link += 1;
+        if s.as_str().chars().next() == Some('(') {
+            while let Some(c) = s.next() {
+                match c {
+                    '(' => (),
+                    ')' => break,
+                    _ => link.push(c)
+                }
             }
+        }
 
-            blocks.push(Block {
-                c: c,
-                bold: bold >= 2,
-                italic: bold == 1 || bold >= 3,
-                code: code > 0,
-                link: link > 0
-            });
+        Block::Link(blocks, link)
+    }
 
-            if bolding < 0 {
-                bold = max(0, bold + bolding);
-            }
+    fn parse(s: &mut Chars) -> Vec<Block> {
+        let mut blocks = Vec::new();
 
-            if coding < 0 {
-                code = max(0, code + coding);
-            }
-
-            if c == ']' {
-                link = max(0, link - 1);
+        while let Some(c) = s.next() {
+            match c {
+                '*' => if s.as_str().chars().next() == Some('*') {
+                    let _ = s.next();
+                    blocks.push(Block::parse_bold(s));
+                } else {
+                    blocks.push(Block::parse_italic(s));
+                },
+                '`' => blocks.push(Block::parse_code(s)),
+                '[' => blocks.push(Block::parse_link(s)),
+                _ => blocks.push(Block::Text(c))
             }
         }
 
         blocks
     }
 
-    //TODO: UTF8
     fn draw(&self, to: &mut RawTerminal<&mut StdoutLock>) -> std::io::Result<usize> {
-        if self.bold {
-            try!(to.style(Style::Bold));
+        let mut res = 0;
+
+        match *self {
+            Block::Text(c) => {
+                res += try!(to.write(&[c as u8]));
+            },
+            Block::Bold(ref blocks) => {
+                try!(to.style(Style::Bold));
+                for block in blocks.iter() {
+                    res += try!(block.draw(to));
+                }
+                try!(to.style(Style::NoBold));
+            },
+            Block::Italic(ref blocks) => {
+                try!(to.style(Style::Italic));
+                for block in blocks.iter() {
+                    res += try!(block.draw(to));
+                }
+                try!(to.style(Style::NoItalic));
+            },
+            Block::Code(ref blocks) => {
+                try!(to.style(Style::Invert));
+                for block in blocks.iter() {
+                    res += try!(block.draw(to));
+                }
+                try!(to.style(Style::NoInvert));
+            },
+            Block::Link(ref blocks, ref _link) => {
+                try!(to.style(Style::Underline));
+                for block in blocks.iter() {
+                    res += try!(block.draw(to));
+                }
+                try!(to.style(Style::NoUnderline));
+            },
         }
 
-        if self.italic {
-            try!(to.style(Style::Italic));
+        Ok(res)
+    }
+
+    fn enter(&self, path: &str) -> Option<PathBuf> {
+        match *self {
+            Block::Text(_c) => {},
+            Block::Bold(ref blocks) => {
+                for block in blocks.iter() {
+                    if let Some(ret) = block.enter(path) {
+                        return Some(ret);
+                    }
+                }
+            },
+            Block::Italic(ref blocks) => {
+                for block in blocks.iter() {
+                    if let Some(ret) = block.enter(path) {
+                        return Some(ret);
+                    }
+                }
+            },
+            Block::Code(ref blocks) => {
+                for block in blocks.iter() {
+                    if let Some(ret) = block.enter(path) {
+                        return Some(ret);
+                    }
+                }
+            },
+            Block::Link(ref _blocks, ref link) => {
+                let mut ret = PathBuf::from(path);
+                ret.pop();
+                ret.push(link);
+                return Some(ret);
+            },
         }
 
-        if self.code {
-            try!(to.style(Style::Invert));
-        }
-
-        if self.link {
-            try!(to.style(Style::Underline));
-        }
-
-        try!(to.write(&[self.c as u8]));
-
-        if self.bold {
-            try!(to.style(Style::NoBold));
-        }
-
-        if self.italic {
-            try!(to.style(Style::NoItalic));
-        }
-
-        if self.code {
-            try!(to.style(Style::NoInvert));
-        }
-
-        if self.link {
-            try!(to.style(Style::NoUnderline));
-        }
-
-        Ok(1)
+        None
     }
 }
 
@@ -224,7 +278,7 @@ impl Buffer {
         self.lines.append(&mut tmp
             .as_str()
             .split("\n")
-            .map(|x| { Block::parse(x) })
+            .map(|x| { Block::parse(&mut x.chars()) })
             .collect());
 
         return res;
@@ -263,6 +317,41 @@ impl Buffer {
         }
 
         Ok(bytes_written)
+    }
+
+    fn enter(&mut self, path: &str, w: u16, h: u16) -> Option<PathBuf> {
+        let mut y = 0;
+
+        let lines = if self.lines.len() <= h as usize {
+            &self.lines
+        } else if self.y_off as usize >= self.lines.len() {
+            &self.lines[0..0]
+        } else {
+            &self.lines[self.y_off as usize..]
+        };
+
+        for line in lines {
+            if line.len() > w as usize {
+                for block in line[.. w as usize].iter() {
+                    if let Some(ret) = block.enter(path) {
+                        return Some(ret);
+                    }
+                }
+            } else {
+                for block in line.iter() {
+                    if let Some(ret) = block.enter(path) {
+                        return Some(ret);
+                    }
+                }
+            }
+
+            y += 1;
+            if y >= h {
+                break;
+            }
+        }
+
+        None
     }
 
     fn scroll_up(&mut self) {
@@ -317,6 +406,13 @@ fn run(path: &str, file: &mut Read, controls: &mut Read, stdout: &mut StdoutLock
             },
             Key::Up | Key::Char('k') => buffer.scroll_up(),
             Key::Down | Key::Char('j') => buffer.scroll_down(h),
+            Key::Char('\r') | Key::Char('\n') => {
+                if let Some(link_path) = buffer.enter(path, w, h - 1) {
+                    let mut new_file = File::open(link_path).try(stderr);
+                    buffer = Buffer::new();
+                    buffer.read(&mut new_file).try(stderr);
+                }
+            }
             _ => {},
         }
 
