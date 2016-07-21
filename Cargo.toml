@@ -24,6 +24,10 @@ name = "grep"
 path = "src/bin/grep.rs"
 
 [[bin]]
+name = "info"
+path = "src/bin/info.rs"
+
+[[bin]]
 name = "less"
 path = "src/bin/less.rs"
 

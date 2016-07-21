@@ -1,5 +1,7 @@
 #![deny(warnings)]
 
+#![feature(question_mark)]
+
 // TODO support reading from standard input
 
 extern crate extra;
@@ -7,7 +9,7 @@ extern crate termion;
 
 use std::env::args;
 use std::fs::File;
-use std::io::{self, Write, Read, StdoutLock, Stderr};
+use std::io::{self, Write, Read, StdoutLock};
 use std::path::{Path, PathBuf};
 use std::str::Chars;
 
@@ -54,34 +56,28 @@ COPYRIGHT
 "#; /* @MANEND */
 
 fn main() {
-    let mut args = args().skip(1);
+    let mut args = args().skip(1).peekable();
     let stdout = io::stdout();
     let mut stdout = stdout.lock();
     let stdin = io::stdin();
     let mut stdin = stdin.lock();
     let mut stderr = io::stderr();
 
-    if let Some(x) = args.next() {
-        match x.as_str() {
-            "--help" | "-h" => {
-                // Print help.
-                stdout.write(LONG_HELP.as_bytes()).try(&mut stderr);
-                return;
-            },
-            filename => {
-                let mut file = File::open(Path::new(filename)).try(&mut stderr);
-                run(filename, &mut file, &mut stdin, &mut stdout, &mut stderr);
-            }
-        }
-
-        if let Some(x) = args.next() {
-            let mut file = File::open(Path::new(x.as_str())).try(&mut stderr);
-            run(x.as_str(), &mut file, &mut stdin, &mut stdout, &mut stderr);
+    if let Some(x) = args.peek() {
+        if x == "--help" || x == "-h" {
+            // Print help.
+            stdout.write(LONG_HELP.as_bytes()).try(&mut stderr);
+            return;
         }
     } else {
         writeln!(stderr, "Readin from stdin is not yet supported").try(&mut stderr);
-        //run(&mut stdin, &mut stdin, &mut stdout, &mut stderr);
+        //run(&mut stdin, &mut stdin, &mut stdout);
     };
+
+    while let Some(filename) = args.next().map(|x| PathBuf::from(x)) {
+        let mut file = File::open(&filename).try(&mut stderr);
+        run(filename, &mut file, &mut stdin, &mut stdout).try(&mut stderr);
+    }
 }
 
 //TODO: String in Text
@@ -181,79 +177,83 @@ impl Block {
         blocks
     }
 
-    fn draw(&self, to: &mut RawTerminal<&mut StdoutLock>) -> std::io::Result<usize> {
-        let mut res = 0;
+    fn draw(&self, to: &mut RawTerminal<&mut StdoutLock>, path: &PathBuf, next: &mut Vec<PathBuf>, next_i: usize) -> std::io::Result<usize> {
+        let mut count = 0;
 
         match *self {
             Block::Text(c) => {
-                res += try!(to.write(&[c as u8]));
+                count += try!(to.write(&[c as u8]));
             },
             Block::Bold(ref blocks) => {
                 try!(to.style(Style::Bold));
                 for block in blocks.iter() {
-                    res += try!(block.draw(to));
+                    count += try!(block.draw(to, path, next, next_i));
                 }
                 try!(to.style(Style::NoBold));
             },
             Block::Italic(ref blocks) => {
                 try!(to.style(Style::Italic));
                 for block in blocks.iter() {
-                    res += try!(block.draw(to));
+                    count += try!(block.draw(to, path, next, next_i));
                 }
                 try!(to.style(Style::NoItalic));
             },
             Block::Code(ref blocks) => {
                 try!(to.style(Style::Invert));
                 for block in blocks.iter() {
-                    res += try!(block.draw(to));
+                    count += try!(block.draw(to, path, next, next_i));
                 }
                 try!(to.style(Style::NoInvert));
             },
-            Block::Link(ref blocks, ref _link) => {
-                try!(to.style(Style::Underline));
-                for block in blocks.iter() {
-                    res += try!(block.draw(to));
+            Block::Link(ref blocks, ref link) => {
+                let highlight = if next.len() == next_i {
+                    true
+                } else {
+                    false
+                };
+
+                if link.starts_with('/') {
+                    next.push(PathBuf::from(link));
+                } else {
+                    let mut next_path = path.clone();
+                    next_path.pop();
+
+                    for part in Path::new(&link).iter() {
+                        match part.to_str().unwrap() {
+                            "." => {},
+                            ".." => {
+                                while next_path.ends_with(".") && next_path.pop() {}
+                                if next_path.ends_with("..") || ! next_path.pop() {
+                                    next_path.push(part);
+                                }
+                            },
+                            _ => next_path.push(part)
+                        }
+                        if part == "." {
+
+                        } else if part == ".." {
+
+                        }
+                    }
+
+                    next.push(next_path);
                 }
-                try!(to.style(Style::NoUnderline));
+
+                to.style(Style::Underline)?;
+                if highlight {
+                    to.style(Style::Invert)?;
+                }
+                for block in blocks.iter() {
+                    count += try!(block.draw(to, path, next, next_i));
+                }
+                to.style(Style::NoUnderline)?;
+                if highlight {
+                    to.style(Style::NoInvert)?;
+                }
             },
         }
 
-        Ok(res)
-    }
-
-    fn enter(&self, path: &str) -> Option<PathBuf> {
-        match *self {
-            Block::Text(_c) => {},
-            Block::Bold(ref blocks) => {
-                for block in blocks.iter() {
-                    if let Some(ret) = block.enter(path) {
-                        return Some(ret);
-                    }
-                }
-            },
-            Block::Italic(ref blocks) => {
-                for block in blocks.iter() {
-                    if let Some(ret) = block.enter(path) {
-                        return Some(ret);
-                    }
-                }
-            },
-            Block::Code(ref blocks) => {
-                for block in blocks.iter() {
-                    if let Some(ret) = block.enter(path) {
-                        return Some(ret);
-                    }
-                }
-            },
-            Block::Link(ref _blocks, ref link) => {
-                let mut ret = PathBuf::from(path);
-                ret.pop();
-                ret.push(link);
-                return Some(ret);
-            },
-        }
-
-        None
+        Ok(count)
     }
 }
 
@@ -284,11 +284,11 @@ impl Buffer {
         return res;
     }
 
-    fn draw(&self, to: &mut RawTerminal<&mut StdoutLock>, w: u16, h: u16) -> std::io::Result<usize> {
+    fn draw(&self, to: &mut RawTerminal<&mut StdoutLock>, path: &PathBuf, next: &mut Vec<PathBuf>, next_i: usize, w: u16, h: u16) -> std::io::Result<usize> {
         try!(to.goto(0, 0));
 
         let mut y = 0;
-        let mut bytes_written = 0;
+        let mut count = 0;
 
         let lines = if self.lines.len() <= h as usize {
             &self.lines
@@ -299,13 +299,11 @@ impl Buffer {
         };
 
         for line in lines {
-            if line.len() > w as usize {
-                for block in line[.. w as usize].iter() {
-                    bytes_written += try!(block.draw(to));
-                }
-            } else {
-                for block in line.iter() {
-                    bytes_written += try!(block.draw(to));
+            for block in line.iter() {
+                let x = try!(block.draw(to, path, next, next_i));
+                count += x;
+                if x >= w as usize {
+                    break;
                 }
             }
 
@@ -316,42 +314,7 @@ impl Buffer {
             }
         }
 
-        Ok(bytes_written)
-    }
-
-    fn enter(&mut self, path: &str, w: u16, h: u16) -> Option<PathBuf> {
-        let mut y = 0;
-
-        let lines = if self.lines.len() <= h as usize {
-            &self.lines
-        } else if self.y_off as usize >= self.lines.len() {
-            &self.lines[0..0]
-        } else {
-            &self.lines[self.y_off as usize..]
-        };
-
-        for line in lines {
-            if line.len() > w as usize {
-                for block in line[.. w as usize].iter() {
-                    if let Some(ret) = block.enter(path) {
-                        return Some(ret);
-                    }
-                }
-            } else {
-                for block in line.iter() {
-                    if let Some(ret) = block.enter(path) {
-                        return Some(ret);
-                    }
-                }
-            }
-
-            y += 1;
-            if y >= h {
-                break;
-            }
-        }
-
-        None
+        Ok(count)
     }
 
     fn scroll_up(&mut self) {
@@ -367,36 +330,39 @@ impl Buffer {
     }
 }
 
-fn run(path: &str, file: &mut Read, controls: &mut Read, stdout: &mut StdoutLock, stderr: &mut Stderr) {
-    let mut stdout = stdout.into_raw_mode().try(stderr);
+fn run(mut path: PathBuf, file: &mut Read, controls: &mut Read, stdout: &mut StdoutLock) -> std::io::Result<()> {
+    let mut stdout = stdout.into_raw_mode()?;
 
     let (w, h) = {
-        let (w, h) = terminal_size().try(stderr);
+        let (w, h) = terminal_size()?;
         (w as u16, h as u16)
     };
 
-    stdout.clear().try(stderr);
-    stdout.reset().try(stderr);
+    let mut next = Vec::new();
+    let mut next_i = 0;
+
+    stdout.clear()?;
+    stdout.reset()?;
 
     let mut buffer = Buffer::new();
-    buffer.read(file).try(stderr);
+    buffer.read(file)?;
 
-    buffer.draw(&mut stdout, w, h - 1).try(stderr);
-    stdout.goto(0, h - 1).try(stderr);
-    stdout.bg_color(Color::White).try(stderr);
-    stdout.color(Color::Black).try(stderr);
-    stdout.write(path.as_bytes()).try(stderr);
-    stdout.write(b" Press q to exit.").try(stderr);
-    stdout.reset().try(stderr);
-    stdout.flush().try(stderr);
+    buffer.draw(&mut stdout, &path, &mut next, next_i, w, h - 1)?;
+    stdout.goto(0, h - 1)?;
+    stdout.bg_color(Color::White)?;
+    stdout.color(Color::Black)?;
+    stdout.write(path.to_str().unwrap().as_bytes())?;
+    stdout.write(b" Press q to exit.")?;
+    stdout.reset()?;
+    stdout.flush()?;
 
     for c in controls.keys() {
         match c.unwrap() {
             Key::Char('q') => {
-                stdout.clear().try(stderr);
-                stdout.reset().try(stderr);
-                stdout.goto(0, 0).try(stderr);
-                return
+                stdout.clear()?;
+                stdout.reset()?;
+                stdout.goto(0, 0)?;
+                break;
             },
             Key::Char('b') => for _i in 1..h {
                 buffer.scroll_up()
@@ -406,25 +372,38 @@ fn run(path: &str, file: &mut Read, controls: &mut Read, stdout: &mut StdoutLock
             },
             Key::Up | Key::Char('k') => buffer.scroll_up(),
             Key::Down | Key::Char('j') => buffer.scroll_down(h),
+            Key::Char('\t') => {
+                next_i += 1;
+                if next_i >= next.len() {
+                    next_i = 0;
+                }
+            },
             Key::Char('\r') | Key::Char('\n') => {
-                if let Some(link_path) = buffer.enter(path, w, h - 1) {
-                    let mut new_file = File::open(link_path).try(stderr);
-                    buffer = Buffer::new();
-                    buffer.read(&mut new_file).try(stderr);
+                if let Some(next_path) = next.get(next_i) {
+                    if let Ok(mut next_file) = File::open(&next_path) {
+                        path = next_path.clone();
+                        buffer = Buffer::new();
+                        buffer.read(&mut next_file)?;
+                        next_i = 0;
+                    }
                 }
             }
             _ => {},
         }
 
-        stdout.clear().try(stderr);
-        stdout.reset().try(stderr);
-        buffer.draw(&mut stdout, w, h - 1).try(stderr);
-        stdout.goto(0, h - 1).try(stderr);
-        stdout.bg_color(Color::White).try(stderr);
-        stdout.color(Color::Black).try(stderr);
-        stdout.write(path.as_bytes()).try(stderr);
-        stdout.write(b" Press q to exit.").try(stderr);
-        stdout.reset().try(stderr);
-        stdout.flush().try(stderr);
+        next = Vec::new();
+
+        stdout.clear()?;
+        stdout.reset()?;
+        buffer.draw(&mut stdout, &path, &mut next, next_i, w, h - 1)?;
+        stdout.goto(0, h - 1)?;
+        stdout.bg_color(Color::White)?;
+        stdout.color(Color::Black)?;
+        stdout.write(path.to_str().unwrap().as_bytes())?;
+        stdout.write(b" Press q to exit.")?;
+        stdout.reset()?;
+        stdout.flush()?;
     }
+
+    Ok(())
 }
