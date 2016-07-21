@@ -199,11 +199,11 @@ impl Block {
                 try!(to.style(Style::NoItalic));
             },
             Block::Code(ref blocks) => {
-                try!(to.style(Style::Invert));
+                try!(to.bg_color(Color::Grayscale(6)));
                 for block in blocks.iter() {
                     count += try!(block.draw(to, path, next, next_i));
                 }
-                try!(to.style(Style::NoInvert));
+                try!(to.rendition(49));
             },
             Block::Link(ref blocks, ref link) => {
                 let highlight = if next.len() == next_i {
