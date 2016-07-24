@@ -1,4 +1,5 @@
 #![deny(warnings)]
+#![feature(question_mark)]
 
 // TODO support reading from standard input
 
@@ -7,12 +8,15 @@ extern crate termion;
 
 use std::env::args;
 use std::fs::File;
-use std::io::{self, Write, Read, StdoutLock, Stderr};
+use std::io::{self, Write, Read, StdoutLock};
 use std::path::Path;
 
 use extra::option::OptionalExt;
 
-use termion::{terminal_size, TermRead, TermWrite, IntoRawMode, Color, Key, RawTerminal};
+use termion::{clear, cursor, style, terminal_size};
+use termion::event::Key;
+use termion::input::TermRead;
+use termion::raw::{IntoRawMode, RawTerminal};
 
 static LONG_HELP: &'static str = /* @MANSTART{less} */ r#"
 NAME
@@ -69,13 +73,13 @@ fn main() {
             },
             filename => {
                 let mut file = File::open(Path::new(filename)).try(&mut stderr);
-                run(filename, &mut file, &mut stdin, &mut stdout, &mut stderr);
+                run(filename, &mut file, &mut stdin, &mut stdout).try(&mut stderr);
             }
         }
 
         if let Some(x) = args.next() {
             let mut file = File::open(Path::new(x.as_str())).try(&mut stderr);
-            run(x.as_str(), &mut file, &mut stdin, &mut stdout, &mut stderr);
+            run(x.as_str(), &mut file, &mut stdin, &mut stdout).try(&mut stderr);
         }
     } else {
         writeln!(stderr, "Readin from stdin is not yet supported").try(&mut stderr);
@@ -98,8 +102,7 @@ impl Buffer {
 
     fn read(&mut self, from: &mut Read) -> std::io::Result<usize> {
         let mut tmp = String::new();
-        let res = from.read_to_string(&mut tmp);
-        try!(res);
+        let res = from.read_to_string(&mut tmp)?;
 
         self.lines.append(&mut tmp
             .as_str()
@@ -107,11 +110,11 @@ impl Buffer {
             .map(|x| {String::from(x)})
             .collect());
 
-        return res;
+        Ok(res)
     }
 
     fn draw(&self, to: &mut RawTerminal<&mut StdoutLock>, w: u16, h: u16) -> std::io::Result<usize> {
-        try!(to.goto(0, 0));
+        write!(to, "{}{}{}", clear::All, style::Reset, cursor::Goto(1, 1))?;
 
         let mut y = 0;
         let mut bytes_written = 0;
@@ -126,13 +129,13 @@ impl Buffer {
 
         for line in lines {
             if line.len() > w as usize {
-                bytes_written += try!(to.write(line[..w as usize].as_bytes()));
+                bytes_written += to.write(line[..w as usize].as_bytes())?;
             } else {
-                bytes_written += try!(to.write(line.as_bytes()));
+                bytes_written += to.write(line.as_bytes())?;
             }
 
             y += 1;
-            try!(to.goto(0, y));
+            write!(to, "{}", cursor::Goto(1, y + 1))?;
             if y >= h {
                 break;
             }
@@ -154,36 +157,28 @@ impl Buffer {
     }
 }
 
-fn run(path: &str, file: &mut Read, controls: &mut Read, stdout: &mut StdoutLock, stderr: &mut Stderr) {
-    let mut stdout = stdout.into_raw_mode().try(stderr);
+fn run(path: &str, file: &mut Read, controls: &mut Read, stdout: &mut StdoutLock) -> std::io::Result<()> {
+    let mut stdout = stdout.into_raw_mode()?;
 
     let (w, h) = {
-        let (w, h) = terminal_size().try(stderr);
+        let (w, h) = terminal_size()?;
         (w as u16, h as u16)
     };
 
-    stdout.clear().try(stderr);
-    stdout.reset().try(stderr);
-
     let mut buffer = Buffer::new();
-    buffer.read(file).try(stderr);
+    buffer.read(file)?;
 
-    buffer.draw(&mut stdout, w, h - 1).try(stderr);
-    stdout.goto(0, h - 1).try(stderr);
-    stdout.bg_color(Color::White).try(stderr);
-    stdout.color(Color::Black).try(stderr);
-    stdout.write(path.as_bytes()).try(stderr);
-    stdout.write(b" Press q to exit.").try(stderr);
-    stdout.reset().try(stderr);
-    stdout.flush().try(stderr);
+    buffer.draw(&mut stdout, w, h - 1)?;
+
+    write!(stdout, "{}{}{} Press q to exit.{}", cursor::Goto(1, h), style::Invert, path, style::NoInvert)?;
+
+    stdout.flush()?;
 
     for c in controls.keys() {
         match c.unwrap() {
             Key::Char('q') => {
-                stdout.clear().try(stderr);
-                stdout.reset().try(stderr);
-                stdout.goto(0, 0).try(stderr);
-                return
+                write!(stdout, "{}{}{}", clear::All, style::Reset, cursor::Goto(1, 1))?;
+                break;
             },
             Key::Char('b') | Key::PageUp => for _i in 1..h {
                 buffer.scroll_up()
@@ -202,15 +197,12 @@ fn run(path: &str, file: &mut Read, controls: &mut Read, stdout: &mut StdoutLock
             _ => {},
         }
 
-        stdout.clear().try(stderr);
-        stdout.reset().try(stderr);
-        buffer.draw(&mut stdout, w, h - 1).try(stderr);
-        stdout.goto(0, h - 1).try(stderr);
-        stdout.bg_color(Color::White).try(stderr);
-        stdout.color(Color::Black).try(stderr);
-        stdout.write(path.as_bytes()).try(stderr);
-        stdout.write(b" Press q to exit.").try(stderr);
-        stdout.reset().try(stderr);
-        stdout.flush().try(stderr);
+        buffer.draw(&mut stdout, w, h - 1)?;
+
+        write!(stdout, "{}{}{} Press q to exit.{}", cursor::Goto(1, h), style::Invert, path, style::NoInvert)?;
+
+        stdout.flush()?;
     }
+
+    Ok(())
 }

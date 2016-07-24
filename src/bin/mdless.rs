@@ -15,7 +15,10 @@ use std::str::Chars;
 
 use extra::option::OptionalExt;
 
-use termion::{terminal_size, TermRead, TermWrite, IntoRawMode, Color, Key, RawTerminal, Style};
+use termion::{clear, color, cursor, style, terminal_size};
+use termion::event::Key;
+use termion::input::TermRead;
+use termion::raw::{IntoRawMode, RawTerminal};
 
 static LONG_HELP: &'static str = /* @MANSTART{mdless} */ r#"
 NAME
@@ -182,28 +185,28 @@ impl Block {
 
         match *self {
             Block::Text(c) => {
-                count += try!(to.write(&[c as u8]));
+                count += to.write(&[c as u8])?;
             },
             Block::Bold(ref blocks) => {
-                try!(to.style(Style::Bold));
+                write!(to, "{}", style::Bold)?;
                 for block in blocks.iter() {
-                    count += try!(block.draw(to, path, next, next_i));
+                    count += block.draw(to, path, next, next_i)?;
                 }
-                try!(to.style(Style::NoBold));
+                write!(to, "{}", style::NoBold)?;
             },
             Block::Italic(ref blocks) => {
-                try!(to.style(Style::Italic));
+                write!(to, "{}", style::Italic)?;
                 for block in blocks.iter() {
-                    count += try!(block.draw(to, path, next, next_i));
+                    count += block.draw(to, path, next, next_i)?;
                 }
-                try!(to.style(Style::NoItalic));
+                write!(to, "{}", style::NoItalic)?;
             },
             Block::Code(ref blocks) => {
-                try!(to.bg_color(Color::Grayscale(6)));
+                write!(to, "{}", color::Bg(color::AnsiValue::grayscale(6)))?;
                 for block in blocks.iter() {
-                    count += try!(block.draw(to, path, next, next_i));
+                    count += block.draw(to, path, next, next_i)?;
                 }
-                try!(to.rendition(49));
+                write!(to, "{}", color::Bg(color::Reset))?;
             },
             Block::Link(ref blocks, ref link) => {
                 let highlight = if next.len() == next_i {
@@ -229,26 +232,21 @@ impl Block {
                             },
                             _ => next_path.push(part)
                         }
-                        if part == "." {
-
-                        } else if part == ".." {
-
-                        }
                     }
 
                     next.push(next_path);
                 }
 
-                to.style(Style::Underline)?;
+                write!(to, "{}", style::Underline)?;
                 if highlight {
-                    to.style(Style::Invert)?;
+                    write!(to, "{}", style::Invert)?;
                 }
                 for block in blocks.iter() {
-                    count += try!(block.draw(to, path, next, next_i));
+                    count += block.draw(to, path, next, next_i)?;
                 }
-                to.style(Style::NoUnderline)?;
+                write!(to, "{}", style::NoUnderline)?;
                 if highlight {
-                    to.style(Style::NoInvert)?;
+                    write!(to, "{}", style::NoInvert)?;
                 }
             },
         }
@@ -272,8 +270,7 @@ impl Buffer {
 
     fn read(&mut self, from: &mut Read) -> std::io::Result<usize> {
         let mut tmp = String::new();
-        let res = from.read_to_string(&mut tmp);
-        try!(res);
+        let res = from.read_to_string(&mut tmp)?;
 
         self.lines.append(&mut tmp
             .as_str()
@@ -281,11 +278,11 @@ impl Buffer {
             .map(|x| { Block::parse(&mut x.chars()) })
             .collect());
 
-        return res;
+        Ok(res)
     }
 
     fn draw(&self, to: &mut RawTerminal<&mut StdoutLock>, path: &PathBuf, next: &mut Vec<PathBuf>, next_i: usize, w: u16, h: u16) -> std::io::Result<usize> {
-        try!(to.goto(0, 0));
+        write!(to, "{}{}{}", clear::All, style::Reset, cursor::Goto(1, 1))?;
 
         let mut y = 0;
         let mut count = 0;
@@ -300,7 +297,7 @@ impl Buffer {
 
         for line in lines {
             for block in line.iter() {
-                let x = try!(block.draw(to, path, next, next_i));
+                let x = block.draw(to, path, next, next_i)?;
                 count += x;
                 if x >= w as usize {
                     break;
@@ -308,7 +305,7 @@ impl Buffer {
             }
 
             y += 1;
-            try!(to.goto(0, y));
+            write!(to, "{}", cursor::Goto(1, y + 1))?;
             if y >= h {
                 break;
             }
@@ -341,27 +338,19 @@ fn run(mut path: PathBuf, file: &mut Read, controls: &mut Read, stdout: &mut Std
     let mut next = Vec::new();
     let mut next_i = 0;
 
-    stdout.clear()?;
-    stdout.reset()?;
-
     let mut buffer = Buffer::new();
     buffer.read(file)?;
 
     buffer.draw(&mut stdout, &path, &mut next, next_i, w, h - 1)?;
-    stdout.goto(0, h - 1)?;
-    stdout.bg_color(Color::White)?;
-    stdout.color(Color::Black)?;
-    stdout.write(path.to_str().unwrap().as_bytes())?;
-    stdout.write(b" Press q to exit.")?;
-    stdout.reset()?;
+
+    write!(stdout, "{}{}{} Press q to exit.{}", cursor::Goto(1, h), style::Invert, path.display(), style::NoInvert)?;
+
     stdout.flush()?;
 
     for c in controls.keys() {
         match c.unwrap() {
             Key::Char('q') => {
-                stdout.clear()?;
-                stdout.reset()?;
-                stdout.goto(0, 0)?;
+                write!(stdout, "{}{}{}", clear::All, style::Reset, cursor::Goto(1, 1))?;
                 break;
             },
             Key::Char('b') => for _i in 1..h {
@@ -393,15 +382,10 @@ fn run(mut path: PathBuf, file: &mut Read, controls: &mut Read, stdout: &mut Std
 
         next = Vec::new();
 
-        stdout.clear()?;
-        stdout.reset()?;
         buffer.draw(&mut stdout, &path, &mut next, next_i, w, h - 1)?;
-        stdout.goto(0, h - 1)?;
-        stdout.bg_color(Color::White)?;
-        stdout.color(Color::Black)?;
-        stdout.write(path.to_str().unwrap().as_bytes())?;
-        stdout.write(b" Press q to exit.")?;
-        stdout.reset()?;
+
+        write!(stdout, "{}{}{} Press q to exit.{}", cursor::Goto(1, h), style::Invert, path.display(), style::NoInvert)?;
+
         stdout.flush()?;
     }
 
