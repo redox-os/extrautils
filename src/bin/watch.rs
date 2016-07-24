@@ -1,4 +1,5 @@
-//#![deny(warnings)]
+#![deny(warnings)]
+#![feature(question_mark)]
 
 // TODO support reading from standard input
 
@@ -7,13 +8,14 @@ extern crate termion;
 
 use std::{cmp, str, thread};
 use std::env::args;
-use std::io::{self, Write, Read};
+use std::io::{self, Write, Read, StdoutLock};
 use std::process::{self, Command, Stdio};
 use std::time::Duration;
 
 use extra::option::OptionalExt;
 
-use termion::{async_stdin, terminal_size, TermWrite, IntoRawMode, Color};
+use termion::{async_stdin, clear, cursor, style, terminal_size};
+use termion::raw::IntoRawMode;
 
 static LONG_HELP: &'static str = /* @MANSTART{watch} */ r#"
 NAME
@@ -75,11 +77,11 @@ fn main() {
                     if let Ok(interval_num) = interval_str.parse::<u64>() {
                         interval = cmp::max(1, interval_num);
                     } else {
-                        stderr.write(b"watch: interval argument not specified").try(&mut stderr);
+                        stderr.write(b"watch: interval argument not specified").unwrap();
                         process::exit(1);
                     }
                 } else {
-                    stderr.write(b"watch: interval argument not specified").try(&mut stderr);
+                    stderr.write(b"watch: interval argument not specified").unwrap();
                     process::exit(1);
                 }
             },
@@ -93,43 +95,41 @@ fn main() {
     }
 
     if command.is_empty() {
-        stderr.write(b"watch: command argument not specified").try(&mut stderr);
+        stderr.write(b"watch: command argument not specified").unwrap();
         process::exit(1);
     }
 
+    run(command, interval, &mut stdout).try(&mut stderr);
+}
+
+fn run(command: String, interval: u64, stdout: &mut StdoutLock) -> std::io::Result<()> {
     let title = format!("Every {}s: {}", interval, command);
 
-    let mut stdout = stdout.into_raw_mode().try(&mut stderr);
+    let mut stdout = stdout.into_raw_mode()?;
 
-    let (w, h) = terminal_size().try(&mut stderr);
+    let (w, h) = terminal_size()?;
 
     let mut stdin = async_stdin();
 
     'watching: loop {
-        stdout.clear().try(&mut stderr);
-        stdout.reset().try(&mut stderr);
-        stdout.goto(0, 0).try(&mut stderr);
-
-        stdout.bg_color(Color::White).try(&mut stderr);
-        stdout.color(Color::Black).try(&mut stderr);
-        stdout.write(title.as_bytes()).try(&mut stderr);
-
-        stdout.reset().try(&mut stderr);
+        write!(stdout, "{}{}{}", clear::All, style::Reset, cursor::Goto(1, 1))?;
 
         let child = Command::new("sh").arg("-c").arg(&command)
                         .stdin(Stdio::null()).stdout(Stdio::piped()).stderr(Stdio::piped())
-                        .spawn().try(&mut stderr);
+                        .spawn()?;
         let mut output = String::new();
         if let Some(mut stdout) = child.stdout {
-            stdout.read_to_string(&mut output).try(&mut stderr);
+            stdout.read_to_string(&mut output)?;
         }
-        let mut y = 1;
+
+        let mut y = 0;
         for line in output.lines() {
-            stdout.goto(0, y).try(&mut stderr);
+            write!(stdout, "{}", cursor::Goto(1, y + 1))?;
+
             if line.len() > w as usize {
-                stdout.write(line[..w as usize].as_bytes()).try(&mut stderr);
+                stdout.write(line[..w as usize].as_bytes())?;
             } else {
-                stdout.write(line.as_bytes()).try(&mut stderr);
+                stdout.write(line.as_bytes())?;
             }
 
             y += 1;
@@ -137,18 +137,23 @@ fn main() {
                 break;
             }
         }
-        stdout.flush().try(&mut stderr);
 
-        for b in (&mut stdin).bytes() {
-            if b.try(&mut stderr) == b'q' {
-                break 'watching;
+        write!(stdout, "{}{}{}{}", cursor::Goto(1, h), style::Invert, title, style::NoInvert)?;
+
+        stdout.flush()?;
+
+        for _second in 0..interval*10 {
+            for b in (&mut stdin).bytes() {
+                if b? == b'q' {
+                    break 'watching;
+                }
             }
-        }
 
-        thread::sleep(Duration::new(interval, 0));
+            thread::sleep(Duration::new(0, 100000000));
+        }
     }
 
-    stdout.clear().try(&mut stderr);
-    stdout.reset().try(&mut stderr);
-    stdout.goto(0, 0).try(&mut stderr);
+    write!(stdout, "{}{}{}", clear::All, style::Reset, cursor::Goto(1, 1))?;
+
+    Ok(())
 }

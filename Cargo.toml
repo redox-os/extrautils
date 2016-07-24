@@ -24,12 +24,20 @@ name = "grep"
 path = "src/bin/grep.rs"
 
 [[bin]]
+name = "info"
+path = "src/bin/info.rs"
+
+[[bin]]
 name = "less"
 path = "src/bin/less.rs"
 
 [[bin]]
 name = "man"
 path = "src/bin/man.rs"
+
+[[bin]]
+name = "mdless"
+path = "src/bin/mdless.rs"
 
 [[bin]]
 name = "mtxt"
@@ -50,6 +58,5 @@ path = "src/bin/wget.rs"
 [dependencies.extra]
 git = "https://github.com/redox-os/libextra.git"
 
-[dependencies.termion]
-git = "https://github.com/Ticki/termion.git"
-features = ["nightly"]
+[dependencies]
+termion = "1.0"
