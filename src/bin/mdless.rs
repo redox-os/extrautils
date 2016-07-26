@@ -58,6 +58,17 @@ COPYRIGHT
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 "#; /* @MANEND */
 
+#[cfg(target_os = "redox")]
+fn terminal_path() -> String {
+    use std::env;
+    env::var("TTY").unwrap()
+}
+
+#[cfg(not(target_os = "redox"))]
+fn terminal_path() -> String {
+    "/dev/tty".to_string()
+}
+
 fn main() {
     let mut args = args().skip(1).peekable();
     let stdout = io::stdout();
@@ -73,8 +84,8 @@ fn main() {
             return;
         }
     } else {
-        writeln!(stderr, "Readin from stdin is not yet supported").try(&mut stderr);
-        //run(&mut stdin, &mut stdin, &mut stdout);
+        let mut terminal = File::open(terminal_path()).try(&mut stderr);
+        run(PathBuf::from("-"), &mut stdin, &mut terminal, &mut stdout).try(&mut stderr);
     };
 
     while let Some(filename) = args.next().map(|x| PathBuf::from(x)) {

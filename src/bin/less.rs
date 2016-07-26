@@ -68,34 +68,28 @@ fn terminal_path() -> String {
 }
 
 fn main() {
-    let mut args = args().skip(1);
+    let mut args = args().skip(1).peekable();
     let stdout = io::stdout();
     let mut stdout = stdout.lock();
     let stdin = io::stdin();
     let mut stdin = stdin.lock();
     let mut stderr = io::stderr();
 
-    if let Some(x) = args.next() {
-        match x.as_str() {
-            "--help" | "-h" => {
-                // Print help.
-                stdout.write(LONG_HELP.as_bytes()).try(&mut stderr);
-                return;
-            },
-            filename => {
-                let mut file = File::open(Path::new(filename)).try(&mut stderr);
-                run(filename, &mut file, &mut stdin, &mut stdout).try(&mut stderr);
-            }
-        }
-
-        if let Some(x) = args.next() {
-            let mut file = File::open(Path::new(x.as_str())).try(&mut stderr);
-            run(x.as_str(), &mut file, &mut stdin, &mut stdout).try(&mut stderr);
+    if let Some(x) = args.peek() {
+        if x == "--help" || x == "-h" {
+            // Print help.
+            stdout.write(LONG_HELP.as_bytes()).try(&mut stderr);
+            return;
         }
     } else {
         let mut terminal = File::open(terminal_path()).try(&mut stderr);
         run("-", &mut stdin, &mut terminal, &mut stdout).try(&mut stderr);
     };
+
+    while let Some(filename) = args.next() {
+        let mut file = File::open(Path::new(filename.as_str())).try(&mut stderr);
+        run(filename.as_str(), &mut file, &mut stdin, &mut stdout).try(&mut stderr);
+    }
 }
 
 struct Buffer {
