@@ -22,14 +22,14 @@ fn main() {
 
             write!(stderr(), "* Requesting {}\n", path).unwrap();
 
-            let request = format!("GET /{} HTTP/1.0\r\n\r\n", path);
+            let request = format!("GET /{} HTTP/1.1\r\nHost: {}\r\n\r\n", path, env::args().nth(2).unwrap_or(remote.to_string()));
             stream.write(request.as_bytes()).unwrap();
             stream.flush().unwrap();
 
             write!(stderr(), "* Waiting for response\n").unwrap();
 
-            let mut response = Vec::new();
-            let count = stream.read_to_end(&mut response).unwrap();
+            let mut response = [0; 65536];
+            let count = stream.read(&mut response).unwrap();
 
             let mut headers = true;
             for line in unsafe { str::from_utf8_unchecked(&response[.. count]) }.lines() {
