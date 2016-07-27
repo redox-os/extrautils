@@ -51,10 +51,6 @@ path = "src/bin/rem.rs"
 name = "watch"
 path = "src/bin/watch.rs"
 
-[[bin]]
-name = "wget"
-path = "src/bin/wget.rs"
-
 [dependencies.extra]
 git = "https://github.com/redox-os/libextra.git"
 
