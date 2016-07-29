@@ -3,7 +3,8 @@ name = "extrautils"
 version = "0.1.0"
 dependencies = [
  "extra 0.1.0 (git+https://github.com/redox-os/libextra.git)",
- "termion 1.0.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "pager 0.1.0 (git+https://github.com/redox-os/libpager.git)",
+ "termion 1.0.4 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -17,8 +18,16 @@ version = "0.2.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
+name = "pager"
+version = "0.1.0"
+source = "git+https://github.com/redox-os/libpager.git#c6e4b13b7dac29a4f01b3d283f25a8046180ec00"
+dependencies = [
+ "termion 1.0.4 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "termion"
-version = "1.0.3"
+version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "libc 0.2.14 (registry+https://github.com/rust-lang/crates.io-index)",

@@ -1,9 +1,8 @@
 #![deny(warnings)]
 #![feature(question_mark)]
 
-// TODO support reading from standard input
-
 extern crate extra;
+extern crate pager;
 extern crate termion;
 
 use std::env::args;
@@ -12,11 +11,6 @@ use std::io::{self, Write, Read, StdoutLock};
 use std::path::Path;
 
 use extra::option::OptionalExt;
-
-use termion::{clear, cursor, style, terminal_size};
-use termion::event::Key;
-use termion::input::TermRead;
-use termion::raw::{IntoRawMode, RawTerminal};
 
 static LONG_HELP: &'static str = /* @MANSTART{less} */ r#"
 NAME
@@ -34,8 +28,8 @@ OPTIONS
         Print this manual page.
 
 AUTHOR
-    This program was written by MovingtoMars for Redox OS. Bugs, issues, or feature requests should
-    be reported in the Github repository, 'redox-os/extrautils'.
+    This program was written by MovingtoMars and Ticki for Redox OS. Bugs, issues, or feature
+    requests should be reported in the Github repository, 'redox-os/extrautils'.
 
 COPYRIGHT
     Copyright (c) 2016 MovingtoMars
@@ -56,17 +50,6 @@ COPYRIGHT
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 "#; /* @MANEND */
 
-#[cfg(target_os = "redox")]
-fn terminal_path() -> String {
-    use std::env;
-    env::var("TTY").unwrap()
-}
-
-#[cfg(not(target_os = "redox"))]
-fn terminal_path() -> String {
-    "/dev/tty".to_string()
-}
-
 fn main() {
     let mut args = args().skip(1).peekable();
     let stdout = io::stdout();
@@ -82,8 +65,8 @@ fn main() {
             return;
         }
     } else {
-        let mut terminal = File::open(terminal_path()).try(&mut stderr);
-        run("-", &mut stdin, &mut terminal, &mut stdout).try(&mut stderr);
+        let mut terminal = termion::get_tty().try(&mut stderr);
+        run("-", &mut terminal, &mut stdin, &mut stdout).try(&mut stderr);
     };
 
     while let Some(filename) = args.next() {
@@ -92,122 +75,9 @@ fn main() {
     }
 }
 
-struct Buffer {
-    lines: Vec<String>,
-    y_off: u16,
-}
+fn run<R: Read>(path: &str, file: &mut File, controls: &mut R, stdout: &mut StdoutLock) -> std::io::Result<()> {
+    let mut string = String::new();
+    file.read_to_string(&mut string)?;
 
-impl Buffer {
-    fn new() -> Buffer {
-        Buffer{
-            lines: Vec::new(),
-            y_off: 0,
-        }
-    }
-
-    fn read(&mut self, from: &mut Read) -> std::io::Result<usize> {
-        let mut tmp = String::new();
-        let res = from.read_to_string(&mut tmp)?;
-
-        self.lines.append(&mut tmp
-            .as_str()
-            .split("\n")
-            .map(|x| {String::from(x)})
-            .collect());
-
-        Ok(res)
-    }
-
-    fn draw(&self, to: &mut RawTerminal<&mut StdoutLock>, w: u16, h: u16) -> std::io::Result<usize> {
-        write!(to, "{}{}{}", clear::All, style::Reset, cursor::Goto(1, 1))?;
-
-        let mut y = 0;
-        let mut bytes_written = 0;
-
-        let lines = if self.lines.len() <= h as usize {
-            &self.lines
-        } else if self.y_off as usize >= self.lines.len() {
-            &self.lines[0..0]
-        } else {
-            &self.lines[self.y_off as usize..]
-        };
-
-        for line in lines {
-            if line.len() > w as usize {
-                bytes_written += to.write(line[..w as usize].as_bytes())?;
-            } else {
-                bytes_written += to.write(line.as_bytes())?;
-            }
-
-            y += 1;
-            write!(to, "{}", cursor::Goto(1, y + 1))?;
-            if y >= h {
-                break;
-            }
-        }
-
-        Ok(bytes_written)
-    }
-
-    fn scroll_up(&mut self) {
-        if self.y_off > 0 {
-            self.y_off -= 1;
-        }
-    }
-
-    fn scroll_down(&mut self, height: u16) {
-        if ((self.y_off + height) as usize) <= self.lines.len() {
-            self.y_off += 1;
-        }
-    }
-}
-
-fn run(path: &str, file: &mut Read, controls: &mut Read, stdout: &mut StdoutLock) -> std::io::Result<()> {
-    let mut stdout = stdout.into_raw_mode()?;
-
-    let (w, h) = {
-        let (w, h) = terminal_size()?;
-        (w as u16, h as u16)
-    };
-
-    let mut buffer = Buffer::new();
-    buffer.read(file)?;
-
-    buffer.draw(&mut stdout, w, h - 1)?;
-
-    write!(stdout, "{}{}{} Press q to exit.{}", cursor::Goto(1, h), style::Invert, path, style::NoInvert)?;
-
-    stdout.flush()?;
-
-    for c in controls.keys() {
-        match c.unwrap() {
-            Key::Char('q') => {
-                write!(stdout, "{}{}{}", clear::All, style::Reset, cursor::Goto(1, 1))?;
-                break;
-            },
-            Key::Char('b') | Key::PageUp => for _i in 1..h {
-                buffer.scroll_up()
-            },
-            Key::Char(' ') | Key::PageDown => for _i in 1..h {
-                buffer.scroll_down(h)
-            },
-            Key::Char('u') => for _i in 1..h/2 {
-                buffer.scroll_up()
-            },
-            Key::Char('d') => for _i in 1..h/2 {
-                buffer.scroll_down(h)
-            },
-            Key::Up | Key::Char('k') => buffer.scroll_up(),
-            Key::Down | Key::Char('j') => buffer.scroll_down(h),
-            _ => {},
-        }
-
-        buffer.draw(&mut stdout, w, h - 1)?;
-
-        write!(stdout, "{}{}{} Press q to exit.{}", cursor::Goto(1, h), style::Invert, path, style::NoInvert)?;
-
-        stdout.flush()?;
-    }
-
-    Ok(())
+    pager::start(controls, stdout, path, &string)
 }

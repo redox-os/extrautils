@@ -54,5 +54,9 @@ path = "src/bin/watch.rs"
 [dependencies.extra]
 git = "https://github.com/redox-os/libextra.git"
 
+[dependencies.pager]
+git = "https://github.com/redox-os/libpager.git"
+
 [dependencies]
 termion = "1.0"
+
