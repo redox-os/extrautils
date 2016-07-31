@@ -66,7 +66,7 @@ fn main() {
         }
     } else {
         let mut terminal = termion::get_tty().try(&mut stderr);
-        run("-", &mut terminal, &mut stdin, &mut stdout).try(&mut stderr);
+        run("-", &mut stdin, &mut terminal, &mut stdout).try(&mut stderr);
     };
 
     while let Some(filename) = args.next() {
@@ -75,7 +75,7 @@ fn main() {
     }
 }
 
-fn run<R: Read>(path: &str, file: &mut File, controls: &mut R, stdout: &mut StdoutLock) -> std::io::Result<()> {
+fn run(path: &str, file: &mut Read, controls: &mut Read, stdout: &mut StdoutLock) -> std::io::Result<()> {
     let mut string = String::new();
     file.read_to_string(&mut string)?;
 
