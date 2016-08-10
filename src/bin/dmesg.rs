@@ -37,5 +37,5 @@ fn main() {
         }
     }
 
-    Command::new("less").arg("syslog:").spawn().unwrap().wait().unwrap();
+    Command::new("less").arg("sys:/log").spawn().unwrap().wait().unwrap();
 }
