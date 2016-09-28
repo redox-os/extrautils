@@ -57,6 +57,6 @@ git = "https://github.com/redox-os/libextra.git"
 [dependencies.pager]
 git = "https://github.com/redox-os/libpager.git"
 
-[dependencies]
-termion = "1.0"
+[dependencies.termion]
+git = "https://github.com/ticki/termion.git"
 
