@@ -20,7 +20,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "pager"
 version = "0.1.0"
-source = "git+https://github.com/redox-os/libpager.git#d3248431f75fcbc0fd383ec49a9e7690fd971155"
+source = "git+https://github.com/redox-os/libpager.git#511200eef5783c5649d0585f36abc450ca19685e"
 dependencies = [
  "termion 1.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
