@@ -10,7 +10,7 @@ dependencies = [
 [[package]]
 name = "extra"
 version = "0.1.0"
-source = "git+https://github.com/redox-os/libextra.git#2b523c5684d663cceec580308f183f32aa37ccc3"
+source = "git+https://github.com/redox-os/libextra.git#4cc7d75ec9852e6279830dce106c6e5582f0c164"
 
 [[package]]
 name = "libc"
@@ -28,7 +28,7 @@ dependencies = [
 [[package]]
 name = "termion"
 version = "1.1.1"
-source = "git+https://github.com/ticki/termion.git#f2cec304e85eb25a56c9754e33e83f727ffc889b"
+source = "git+https://github.com/ticki/termion.git#a0751f21b0b39368daf7beded5194ebbcbfe5329"
 dependencies = [
  "libc 0.2.16 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
