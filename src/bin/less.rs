@@ -1,5 +1,4 @@
 #![deny(warnings)]
-#![feature(question_mark)]
 
 extern crate extra;
 extern crate pager;
