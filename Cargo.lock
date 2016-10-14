@@ -20,7 +20,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "pager"
 version = "0.1.0"
-source = "git+https://github.com/redox-os/libpager.git#d3248431f75fcbc0fd383ec49a9e7690fd971155"
+source = "git+https://github.com/redox-os/libpager.git#41b6848ef0d79d955085776b17ee41f2b4917cfc"
 dependencies = [
  "termion 1.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -28,7 +28,7 @@ dependencies = [
 [[package]]
 name = "termion"
 version = "1.1.1"
-source = "git+https://github.com/ticki/termion.git#a0751f21b0b39368daf7beded5194ebbcbfe5329"
+source = "git+https://github.com/ticki/termion.git#4358ed6c48577e6e6daf8b006a7fac0cfa3dd6b9"
 dependencies = [
  "libc 0.2.16 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
