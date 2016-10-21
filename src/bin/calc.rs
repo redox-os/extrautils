@@ -367,12 +367,17 @@ fn main() {
             let mut input = String::new();
             io::stdin().read_line(&mut input)
                        .try(&mut stderr);
-            match input.trim() {
-                "exit" => break,
-                s => {
-                    stdout.writeln(eval(s).as_bytes()).try(&mut stderr);
-                    stdout.flush().try(&mut stderr);
-                },
+            if input.is_empty() {
+                break;
+            } else {
+                match input.trim() {
+                    "" => (),
+                    "exit" => break,
+                    s => {
+                        stdout.writeln(eval(s).as_bytes()).try(&mut stderr);
+                        stdout.flush().try(&mut stderr);
+                    },
+                }
             }
         }
     }
