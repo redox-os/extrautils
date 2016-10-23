@@ -1,5 +1,4 @@
 #![deny(warnings)]
-#![feature(question_mark)]
 
 // TODO support reading from standard input
 
