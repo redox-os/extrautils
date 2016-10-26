@@ -4,7 +4,7 @@ version = "0.1.0"
 dependencies = [
  "extra 0.1.0 (git+https://github.com/redox-os/libextra.git)",
  "pager 0.1.0 (git+https://github.com/redox-os/libpager.git)",
- "termion 1.1.1 (git+https://github.com/ticki/termion.git)",
+ "termion 1.1.2 (git+https://github.com/ticki/termion.git)",
 ]
 
 [[package]]
@@ -20,22 +20,22 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "pager"
 version = "0.1.0"
-source = "git+https://github.com/redox-os/libpager.git#41b6848ef0d79d955085776b17ee41f2b4917cfc"
+source = "git+https://github.com/redox-os/libpager.git#62b01eba8299143a1a5a78b36d85ab63251462b3"
 dependencies = [
- "termion 1.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "termion 1.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "termion"
-version = "1.1.1"
-source = "git+https://github.com/ticki/termion.git#5085815f586c26f1d19a6c6218306282e093c150"
+version = "1.1.2"
+source = "git+https://github.com/ticki/termion.git#2d625d8c572f20e2d005e617a3677ad433a6723d"
 dependencies = [
  "libc 0.2.17 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "termion"
-version = "1.1.1"
+version = "1.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "libc 0.2.17 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -45,5 +45,5 @@ dependencies = [
 "checksum extra 0.1.0 (git+https://github.com/redox-os/libextra.git)" = "<none>"
 "checksum libc 0.2.17 (registry+https://github.com/rust-lang/crates.io-index)" = "044d1360593a78f5c8e5e710beccdc24ab71d1f01bc19a29bcacdba22e8475d8"
 "checksum pager 0.1.0 (git+https://github.com/redox-os/libpager.git)" = "<none>"
-"checksum termion 1.1.1 (git+https://github.com/ticki/termion.git)" = "<none>"
-"checksum termion 1.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "ce9884af069456867e19fd5648b8908d5c9378f586b2659aaa6f3a4088fdb867"
+"checksum termion 1.1.2 (git+https://github.com/ticki/termion.git)" = "<none>"
+"checksum termion 1.1.2 (registry+https://github.com/rust-lang/crates.io-index)" = "b38671f376ed6147ce4bc7df3f216f68631beb17433c205e2adb30a2d6b33e45"
