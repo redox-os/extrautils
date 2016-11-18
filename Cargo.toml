@@ -24,10 +24,6 @@ name = "grep"
 path = "src/bin/grep.rs"
 
 [[bin]]
-name = "hexdump"
-path = "src/bin/hexdump.rs"
-
-[[bin]]
 name = "info"
 path = "src/bin/info.rs"
 
