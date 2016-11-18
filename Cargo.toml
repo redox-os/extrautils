@@ -24,6 +24,10 @@ name = "grep"
 path = "src/bin/grep.rs"
 
 [[bin]]
+name = "hexdump"
+path = "src/bin/hexdump.rs"
+
+[[bin]]
 name = "info"
 path = "src/bin/info.rs"
 
@@ -59,4 +63,3 @@ git = "https://github.com/redox-os/libpager.git"
 
 [dependencies.termion]
 git = "https://github.com/ticki/termion.git"
-
