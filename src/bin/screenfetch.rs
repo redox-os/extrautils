@@ -7,6 +7,7 @@ use std::env;
 use std::fs::File;
 use std::io::{self, Read, Write};
 
+
 fn main() {
     let user = env::var("USER").unwrap_or(String::new());
     let mut hostname = String::new();
@@ -60,27 +61,52 @@ fn main() {
         }
     }
 
+    let left = [
+        "              :+yMMMMy+:              ",
+        "         .+dddNMMMMMMMMNddd+.         ",
+        "       sydMMMMo/sMMMMs/oMMMMdys       ",
+        "    .oMMMdso              osdMMMo.    ",
+        "   .+MMd/`   -:::::::`      `/dMM+.   ",
+        "  +dMMN.     NMMNNNMMdyo`     .NMMd+  ",
+        "  yMMN       NM+   oomMMN       NMMy  ",
+        " hNMd.       NM+     `oMN       .dMNh ",
+        " dMMh        NM+     `oMN        hMMd ",
+        " dMMh        NM+-oooodMMN        hMMd ",
+        " dMMh        NM+/MMMMdhs`        hMMd ",
+        " hNMd.       NM+`/mMMm+         .dMNh ",
+        "  yMMN       NM+   oNMd+        NMMy  ",
+        "  +dMMN.     NM+    omMMm     .NMMd+  ",
+        "   .+MMd/`   --.     .---   `/dMM+.   ",
+        "    .oMMMdso              osdMMMo.    ",
+        "       sydMMMMo////////oMMMMdys       ",
+        "         .+dddNMMMMMMMMNddd+.         ",
+        "              :++++++++:              ",
+    ];
+
+    let right = [
+        format!("\x1B[1;38;5;75m{}\x1B[0m@\x1B[1;38;5;75m{}\x1B[0m", user, hostname.trim()),
+        format!("\x1B[1;38;5;75mOS:\x1B[0m redox-os"),
+        format!("\x1B[1;38;5;75mKernel:\x1B[0m redox"),
+        format!("\x1B[1;38;5;75mUptime:\x1B[0m {}s", uptime),
+        format!("\x1B[1;38;5;75mShell:\x1B[0m ion"),
+        format!("\x1B[1;38;5;75mResolution:\x1B[0m {}x{}", width, height),
+        format!("\x1B[1;38;5;75mDE:\x1B[0m orbital"),
+        format!("\x1B[1;38;5;75mWM:\x1B[0m orbital"),
+        format!("\x1B[1;38;5;75mFont:\x1B[0m unifont"),
+        format!("\x1B[1;38;5;75mCPU:\x1B[0m {}", cpu),
+        format!("\x1B[1;38;5;75mRAM:\x1B[0m {}", ram)
+    ];
+
     let mut string = String::new();
-    string.push_str(&format!("\x1B[1;38;5;75m                `.-/+NMN+-.`                   \x1B[0m\x1B[1;38;5;75m{}\x1B[0m@\x1B[1;38;5;75m{}\x1B[0m\n", user, hostname.trim()));
-    string.push_str("\x1B[1;38;5;75m           `:+oo+/-.-yds--/+oo+:`              \x1B[0m\x1B[1;38;5;75mOS:\x1B[0m redox-os\n");
-    string.push_str("\x1B[1;38;5;75m        `/ss/++::/+o++++o+/:```:ss/`           \x1B[0m\x1B[1;38;5;75mKernel:\x1B[0m redox\n");
-    string.push_str(&format!("\x1B[1;38;5;75m        `/ss/++::/+o++++o+/:```:ss/`           \x1B[0m\x1B[1;38;5;75mUptime:\x1B[0m {}s\n", uptime));
-    string.push_str("\x1B[1;38;5;75m      `+h+``oMMN+.````````.:+syyy:/h+`         \x1B[0m\x1B[1;38;5;75mShell:\x1B[0m ion\n");
-    string.push_str(&format!("\x1B[1;38;5;75m     /h/+mmm/://:+oo+//+oo+:. hNNh.`/h/        \x1B[0m\x1B[1;38;5;75mResolution:\x1B[0m {}x{}\n", width, height));
-    string.push_str("\x1B[1;38;5;75m    oy` ydds`/s+:`        `:+s/-.+Ndd-so       \x1B[0m\x1B[1;38;5;75mDE:\x1B[0m orbital\n");
-    string.push_str("\x1B[1;38;5;75m   os `yo  /y:                :y/.dmM- so      \x1B[0m\x1B[1;38;5;75mWM:\x1B[0m orbital\n");
-    string.push_str("\x1B[1;38;5;75m  :h  s+  os`   \x1B[0m smhhhyyy/  \x1B[1;38;5;75m   `so  +s  h:     \x1B[0m\x1B[1;38;5;75mFont:\x1B[0m unifont\n");
-    string.push_str(&format!("\x1B[1;38;5;75m  m. -h  /h     \x1B[0m yM    .oM+ \x1B[1;38;5;75m     h/  h- .m     \x1B[0m\x1B[1;38;5;75mCPU:\x1B[0m {}\n", cpu));
-    string.push_str(&format!("\x1B[1;38;5;75m  N  s+  d.     \x1B[0m yM     -Ms \x1B[1;38;5;75m     .d  +s  m     \x1B[0m\x1B[1;38;5;75mRAM:\x1B[0m {}\n", ram));
-    string.push_str("\x1B[1;38;5;75m  h  y/  M      \x1B[0m yM :+sydy` \x1B[1;38;5;75m      M  /y  h     \x1B[0m\n");
-    string.push_str("\x1B[1;38;5;75m  M  oo  y/     \x1B[0m yM .yNy.   \x1B[1;38;5;75m     /y  oo  M     \x1B[0m\n");
-    string.push_str("\x1B[1;38;5;75m  y/ `m` .d.    \x1B[0m yM   :md-  \x1B[1;38;5;75m    .d.:hNy /y     \x1B[0m\n");
-    string.push_str("\x1B[1;38;5;75m  .d` :h:--h:   \x1B[0m +s    `ss` \x1B[1;38;5;75m   :h- oMNh`d.     \x1B[0m\n");
-    string.push_str("\x1B[1;38;5;75m   :d.-MMN:.oo:              :oo.+sd+..d:      \x1B[0m\n");
-    string.push_str("\x1B[1;38;5;75m    -d//oyy////so/:oyo..ydhos/. +MMM::d-       \x1B[0m\n");
-    string.push_str("\x1B[1;38;5;75m     `sy- yMMN. `./MMMo+dNm/ ./ss-./ys`        \x1B[0m\n");
-    string.push_str("\x1B[1;38;5;75m       .ss/++:+oo+//:-..:+ooo+-``:ss.          \x1B[0m\n");
-    string.push_str("\x1B[1;38;5;75m         `:ss/-` `.--::--.` `-/ss:`            \x1B[0m\n");
-    string.push_str("\x1B[1;38;5;75m             ./oooooooooooooo/.                \x1B[0m\n");
+    for i in 0..left.len() {
+        string.push_str("\x1B[1;38;5;75m");
+        string.push_str(left[i]);
+        string.push_str("  \x1B[0m");
+        if let Some(r) = right.get(i) {
+            string.push_str(r);
+        }
+        string.push_str("\n");
+    }
+
     io::stdout().write(string.as_bytes()).unwrap();
 }
