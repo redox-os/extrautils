@@ -48,14 +48,16 @@ name = "rem"
 path = "src/bin/rem.rs"
 
 [[bin]]
+name = "screenfetch"
+path = "src/bin/screenfetch.rs"
+
+[[bin]]
 name = "watch"
 path = "src/bin/watch.rs"
 
-[dependencies.extra]
-git = "https://github.com/redox-os/libextra.git"
-
-[dependencies.pager]
-git = "https://github.com/redox-os/libpager.git"
-
-[dependencies.termion]
-git = "https://github.com/ticki/termion.git"
+[dependencies]
+extra = { git = "https://github.com/redox-os/libextra.git" }
+pager = { git = "https://github.com/redox-os/libpager.git" }
+raw-cpuid = { git = "https://github.com/gz/rust-cpuid" }
+redox_syscall = { git = "https://github.com/redox-os/syscall.git" }
+termion = { git = "https://github.com/ticki/termion.git" }
