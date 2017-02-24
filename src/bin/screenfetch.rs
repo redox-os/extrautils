@@ -42,7 +42,7 @@ fn main() {
         let cpuid = raw_cpuid::CpuId::new();
         if let Some(info) = cpuid.get_extended_function_info() {
             if let Some(brand) = info.processor_brand_string() {
-                cpu = brand.to_string();
+                cpu = brand.trim().to_string();
             }
         }
     }
