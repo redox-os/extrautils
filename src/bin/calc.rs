@@ -92,7 +92,6 @@ impl OperatorFunctions for char {
 }
 
 pub fn tokenize(input: &str) -> Result<Vec<Token>, ParseError> {
-    // CONSIDER: input.len() too generous?
     let mut tokens = Vec::with_capacity(input.len());
 
     // TODO: Not this. Modify to use iterator
@@ -102,7 +101,7 @@ pub fn tokenize(input: &str) -> Result<Vec<Token>, ParseError> {
     let mut current_pos = 0;
     while current_pos < input_length {
         let c = chars[current_pos];
-        if c.is_digit(10) {
+        if c.is_digit(10) || c == '.' {
             let token_string = consume_number(&chars[current_pos..]);
             current_pos += token_string.len();
             tokens.push(Token::Number(token_string));
@@ -120,7 +119,6 @@ pub fn tokenize(input: &str) -> Result<Vec<Token>, ParseError> {
 }
 
 fn consume_number(input: &[char]) -> String {
-    // CONSIDER: input.len seems a bit generous
     let mut number = String::with_capacity(input.len());
     let mut has_decimal_point = false;
     for &c in input {
