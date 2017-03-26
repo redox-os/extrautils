@@ -48,6 +48,10 @@ name = "rem"
 path = "src/bin/rem.rs"
 
 [[bin]]
+name = "resize"
+path = "src/bin/resize.rs"
+
+[[bin]]
 name = "screenfetch"
 path = "src/bin/screenfetch.rs"
 
