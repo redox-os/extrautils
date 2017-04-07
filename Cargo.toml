@@ -24,6 +24,14 @@ name = "grep"
 path = "src/bin/grep.rs"
 
 [[bin]]
+name = "gunzip"
+path = "src/bin/gunzip.rs"
+
+[[bin]]
+name = "gzip"
+path = "src/bin/gzip.rs"
+
+[[bin]]
 name = "info"
 path = "src/bin/info.rs"
 
@@ -61,6 +69,7 @@ path = "src/bin/watch.rs"
 
 [dependencies]
 extra = { git = "https://github.com/redox-os/libextra.git" }
+libflate = "0.1.4"
 pager = { git = "https://github.com/redox-os/libpager.git" }
 raw-cpuid = "2.0"
 redox_syscall = "0.1"
