@@ -21,21 +21,15 @@ fn main() {
         let _ = file.read_to_string(&mut hostname);
     }
 
-    let uptime;
-    let uptime_secs;
-    let uptime_mins;
-    let uptime_hours;
-    let uptime_days;
-
     let mut uptime_str = String::new();
 
     let mut ts = syscall::TimeSpec::default();
     if syscall::clock_gettime(syscall::CLOCK_MONOTONIC, &mut ts).is_ok() {
-        uptime = ts.tv_sec;
-        uptime_secs = uptime % 60;
-        uptime_mins = (uptime / SECONDS_PER_MINUTE) % 60;
-        uptime_hours = (uptime / SECONDS_PER_HOUR) % 24;
-        uptime_days = (uptime / SECONDS_PER_DAY) % 365;
+        let uptime = ts.tv_sec;
+        let uptime_secs = uptime % 60;
+        let uptime_mins = (uptime / SECONDS_PER_MINUTE) % 60;
+        let uptime_hours = (uptime / SECONDS_PER_HOUR) % 24;
+        let uptime_days = (uptime / SECONDS_PER_DAY) % 365;
 
         let fmt_result;
         if uptime_days > 0 {
