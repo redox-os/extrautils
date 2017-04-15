@@ -7,6 +7,12 @@ use std::env;
 use std::fs::File;
 use std::io::{self, Read, Write};
 
+// std::fmt::Write conflicts with std::io::Write, hence the alias
+use std::fmt::Write as FmtWrite;
+
+const SECONDS_PER_MINUTE: i64 = 60;
+const SECONDS_PER_HOUR: i64 = 3600;
+const SECONDS_PER_DAY: i64 = 86400;
 
 fn main() {
     let user = env::var("USER").unwrap_or(String::new());
@@ -15,11 +21,34 @@ fn main() {
         let _ = file.read_to_string(&mut hostname);
     }
 
-    let mut uptime = 0;
+    let mut uptime_str = String::new();
 
     let mut ts = syscall::TimeSpec::default();
     if syscall::clock_gettime(syscall::CLOCK_MONOTONIC, &mut ts).is_ok() {
-        uptime = ts.tv_sec;
+        let uptime = ts.tv_sec;
+        let uptime_secs = uptime % 60;
+        let uptime_mins = (uptime / SECONDS_PER_MINUTE) % 60;
+        let uptime_hours = (uptime / SECONDS_PER_HOUR) % 24;
+        let uptime_days = (uptime / SECONDS_PER_DAY) % 365;
+
+        let fmt_result;
+        if uptime_days > 0 {
+            fmt_result = write!(&mut uptime_str, "{}d {}h {}m {}s", uptime_days,
+                                uptime_hours, uptime_mins, uptime_secs);
+        } else if uptime_hours > 0 {
+            fmt_result = write!(&mut uptime_str, "{}h {}m {}s", uptime_hours,
+                                uptime_mins, uptime_secs);
+        } else if uptime_mins > 0 {
+            fmt_result = write!(&mut uptime_str, "{}m {}s", uptime_mins,
+                                uptime_secs);
+        } else {
+            fmt_result = write!(&mut uptime_str, "{}s", uptime_secs);
+        }
+
+        if let Err(_) = fmt_result {
+            // We probably don't want to panic! on this error
+            println!("error: couldn't parse uptime");
+        }
     }
 
     let mut width = 0;
@@ -87,7 +116,7 @@ fn main() {
         format!("\x1B[1;38;5;75m{}\x1B[0m@\x1B[1;38;5;75m{}\x1B[0m", user, hostname.trim()),
         format!("\x1B[1;38;5;75mOS:\x1B[0m redox-os"),
         format!("\x1B[1;38;5;75mKernel:\x1B[0m redox"),
-        format!("\x1B[1;38;5;75mUptime:\x1B[0m {}s", uptime),
+        format!("\x1B[1;38;5;75mUptime:\x1B[0m {}", uptime_str),
         format!("\x1B[1;38;5;75mShell:\x1B[0m ion"),
         format!("\x1B[1;38;5;75mResolution:\x1B[0m {}x{}", width, height),
         format!("\x1B[1;38;5;75mDE:\x1B[0m orbital"),
