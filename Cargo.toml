@@ -81,5 +81,5 @@ libflate = "0.1.4"
 pager = { git = "https://github.com/redox-os/libpager.git" }
 raw-cpuid = "2.0"
 redox_syscall = "0.1"
-tar = "0.4"
+tar = { git = "https://github.com/redox-os/tar-rs.git" }
 termion = { git = "https://github.com/redox-os/termion.git" }
