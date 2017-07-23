@@ -32,6 +32,10 @@ OPTIONS
     --invert-match
         Invert matching.
 
+    -c
+    --count
+        Print count of matching lines, instead of those lines.
+
     -n
     --line-number
         Prefix each line of output with the line number of the match.
@@ -41,11 +45,12 @@ OPTIONS
 struct Flags {
     line_numbers: bool,
     invert_match: bool,
+    count: bool,
 }
 
 impl Flags {
     fn new() -> Flags {
-        Flags { line_numbers: false, invert_match: false }
+        Flags { line_numbers: false, invert_match: false, count: false }
     }
 }
 
@@ -68,6 +73,7 @@ fn main() {
                 },
                 "-n" | "--line-number" => flags.line_numbers = true,
                 "-v" | "--invert-match" => flags.invert_match = true,
+                "-c" | "--count" => flags.count = true,
                 _ => {
                     stderr.write(b"Unknown option: ").try(&mut stderr);
                     stderr.write(arg.as_bytes()).try(&mut stderr);
@@ -110,6 +116,7 @@ fn main() {
 
 fn do_simple_search<T: BufRead, O: Write + WriteExt>(reader: T, pattern: &str, out: &mut O, stderr: &mut Stderr, flags: Flags) {
     let mut line_num = 0;
+    let mut count = 0;
     for result in reader.lines() {
         line_num += 1;
         if let Ok(line) = result {
@@ -118,12 +125,18 @@ fn do_simple_search<T: BufRead, O: Write + WriteExt>(reader: T, pattern: &str, o
             } else {
                 line.contains(pattern)
             };
-            if is_match {
+            if is_match && flags.count {
+                count += 1;
+            } else if is_match {
                 if flags.line_numbers {
                     out.write_all((line_num.to_string() + ": ").as_bytes()).try(stderr);
                 }
                 out.writeln(line.as_bytes()).try(stderr);
             }
         }
+    }
+
+    if flags.count {
+        println!("{}", count);
     }
 }
