@@ -28,6 +28,10 @@ OPTIONS
     --help
         Print this manual page.
 
+    -v
+    --invert-match
+        Invert matching.
+
     -n
     --line-number
         Prefix each line of output with the line number of the match.
@@ -36,11 +40,12 @@ OPTIONS
 #[derive(Copy, Clone)]
 struct Flags {
     line_numbers: bool,
+    invert_match: bool,
 }
 
 impl Flags {
     fn new() -> Flags {
-        Flags { line_numbers: false }
+        Flags { line_numbers: false, invert_match: false }
     }
 }
 
@@ -62,6 +67,7 @@ fn main() {
                     stdout.writeln(MAN_PAGE.as_bytes()).try(&mut stderr);
                 },
                 "-n" | "--line-number" => flags.line_numbers = true,
+                "-v" | "--invert-match" => flags.invert_match = true,
                 _ => {
                     stderr.write(b"Unknown option: ").try(&mut stderr);
                     stderr.write(arg.as_bytes()).try(&mut stderr);
@@ -107,7 +113,12 @@ fn do_simple_search<T: BufRead, O: Write + WriteExt>(reader: T, pattern: &str, o
     for result in reader.lines() {
         line_num += 1;
         if let Ok(line) = result {
-            if line.contains(pattern) {
+            let is_match = if flags.invert_match {
+                !line.contains(pattern)
+            } else {
+                line.contains(pattern)
+            };
+            if is_match {
                 if flags.line_numbers {
                     out.write_all((line_num.to_string() + ": ").as_bytes()).try(stderr);
                 }
