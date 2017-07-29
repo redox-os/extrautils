@@ -6,7 +6,7 @@ dependencies = [
  "libflate 0.1.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "pager 0.1.0 (git+https://github.com/redox-os/libpager.git)",
  "raw-cpuid 2.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "redox_syscall 0.1.27 (registry+https://github.com/rust-lang/crates.io-index)",
+ "redox_syscall 0.1.28 (registry+https://github.com/rust-lang/crates.io-index)",
  "tar 0.4.13 (git+https://github.com/redox-os/tar-rs.git)",
  "termion 1.4.0 (git+https://github.com/redox-os/termion.git)",
 ]
@@ -63,7 +63,7 @@ dependencies = [
 
 [[package]]
 name = "redox_syscall"
-version = "0.1.27"
+version = "0.1.28"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
@@ -71,7 +71,7 @@ name = "redox_termios"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "redox_syscall 0.1.27 (registry+https://github.com/rust-lang/crates.io-index)",
+ "redox_syscall 0.1.28 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -89,7 +89,7 @@ version = "1.4.0"
 source = "git+https://github.com/redox-os/termion.git#63d2464aba93ac8ec0118255e9a41debcb809c1f"
 dependencies = [
  "libc 0.2.28 (registry+https://github.com/rust-lang/crates.io-index)",
- "redox_syscall 0.1.27 (registry+https://github.com/rust-lang/crates.io-index)",
+ "redox_syscall 0.1.28 (registry+https://github.com/rust-lang/crates.io-index)",
  "redox_termios 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -99,7 +99,7 @@ version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "libc 0.2.28 (registry+https://github.com/rust-lang/crates.io-index)",
- "redox_syscall 0.1.27 (registry+https://github.com/rust-lang/crates.io-index)",
+ "redox_syscall 0.1.28 (registry+https://github.com/rust-lang/crates.io-index)",
  "redox_termios 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -120,7 +120,7 @@ dependencies = [
 "checksum libflate 0.1.10 (registry+https://github.com/rust-lang/crates.io-index)" = "bb9e5c68bd981985afa70d22a81f339bb0ea8a071760e99894d6d393417e4a29"
 "checksum pager 0.1.0 (git+https://github.com/redox-os/libpager.git)" = "<none>"
 "checksum raw-cpuid 2.0.2 (registry+https://github.com/rust-lang/crates.io-index)" = "13b844e4049605ff38fed943f5c7b2c691fad68d9d5bf074d2720554c4e48246"
-"checksum redox_syscall 0.1.27 (registry+https://github.com/rust-lang/crates.io-index)" = "80dcf663dc552529b9bfc7bdb30ea12e5fa5d3545137d850a91ad410053f68e9"
+"checksum redox_syscall 0.1.28 (registry+https://github.com/rust-lang/crates.io-index)" = "ddab7acd8e7bf3e49dfdf78ac1209b992329eb2f66e0bf672ab49c70a76d1d68"
 "checksum redox_termios 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "bc495930de8d330f14856cface52561b7d79a072c76e438cf8f34d7233a35fa7"
 "checksum tar 0.4.13 (git+https://github.com/redox-os/tar-rs.git)" = "<none>"
 "checksum termion 1.4.0 (git+https://github.com/redox-os/termion.git)" = "<none>"
