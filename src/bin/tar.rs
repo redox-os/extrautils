@@ -1,13 +1,19 @@
 #![deny(warnings)]
 
 extern crate tar;
+extern crate tree_magic;
+extern crate lzma;
+extern crate libflate;
 
 use std::{env, process};
-use std::io::{stdin, stdout, stderr, copy, Result, Read, Write};
+use std::io::{stdin, stdout, stderr, copy, Error, ErrorKind, Result, Read, Write};
 use std::fs::{self, File};
 use std::os::unix::fs::OpenOptionsExt;
+use std::path::Path;
 
 use tar::{Archive, Builder, EntryType};
+use lzma::LzmaReader;
+use libflate::gzip::Decoder as GzipDecoder;
 
 fn create_inner<T: Write>(input: &str, ar: &mut Builder<T>) -> Result<()> {
     if try!(fs::metadata(input)).is_dir() {
@@ -92,7 +98,17 @@ fn extract(tar: &str) -> Result<()> {
     if tar == "-" {
         extract_inner(&mut Archive::new(stdin()))
     } else {
-        extract_inner(&mut Archive::new(try!(File::open(tar))))
+        let mime = tree_magic::from_filepath(Path::new(&tar));
+        let file = File::open(tar)?;
+        if mime == "application/x-xz" {
+            extract_inner(&mut Archive::new(LzmaReader::new_decompressor(file)
+                                            .map_err(|e| Error::new(ErrorKind::Other, e))?))
+        } else if mime == "application/gzip" {
+            extract_inner(&mut Archive::new(GzipDecoder::new(file)
+                                            .map_err(|e| Error::new(ErrorKind::Other, e))?))
+        } else {
+            extract_inner(&mut Archive::new(file))
+        }
     }
 }
 
