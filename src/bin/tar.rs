@@ -60,7 +60,7 @@ fn list(tar: &str) -> Result<()> {
     }
 }
 
-fn extract_inner<T: Read>(ar: &mut Archive<T>) -> Result<()> {
+fn extract_inner<T: Read>(ar: &mut Archive<T>, verbose: bool) -> Result<()> {
     for entry_result in try!(ar.entries()) {
         let mut entry = try!(entry_result);
         match entry.header().entry_type() {
@@ -89,25 +89,29 @@ fn extract_inner<T: Read>(ar: &mut Archive<T>) -> Result<()> {
                 panic!("Unsupported entry type {:?}", other);
             }
         }
+
+        if verbose {
+            println!("{}", entry.path()?.display());
+        }
     }
 
     Ok(())
 }
 
-fn extract(tar: &str) -> Result<()> {
+fn extract(tar: &str, verbose: bool) -> Result<()> {
     if tar == "-" {
-        extract_inner(&mut Archive::new(stdin()))
+        extract_inner(&mut Archive::new(stdin()), verbose)
     } else {
         let mime = tree_magic::from_filepath(Path::new(&tar));
         let file = BufReader::new(File::open(tar)?);
         if mime == "application/x-xz" {
             extract_inner(&mut Archive::new(LzmaReader::new_decompressor(file)
-                                            .map_err(|e| Error::new(ErrorKind::Other, e))?))
+                                            .map_err(|e| Error::new(ErrorKind::Other, e))?), verbose)
         } else if mime == "application/gzip" {
             extract_inner(&mut Archive::new(GzipDecoder::new(file)
-                                            .map_err(|e| Error::new(ErrorKind::Other, e))?))
+                                            .map_err(|e| Error::new(ErrorKind::Other, e))?), verbose)
         } else {
-            extract_inner(&mut Archive::new(file))
+            extract_inner(&mut Archive::new(file), verbose)
         }
     }
 }
@@ -146,9 +150,10 @@ fn main() {
                     process::exit(1);
                 }
             },
-            "x" | "xf" => {
+            "x" | "xf" | "xvf" => {
                 let tar = args.next().unwrap_or("-".to_string());
-                if let Err(err) = extract(&tar) {
+                let verbose = op.contains('v');
+                if let Err(err) = extract(&tar, verbose) {
                     write!(stderr(), "tar: extract: failed: {}\n", err).unwrap();
                     process::exit(1);
                 }
