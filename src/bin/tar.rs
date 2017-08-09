@@ -9,7 +9,8 @@ use std::{env, process};
 use std::io::{stdin, stdout, stderr, copy, Error, ErrorKind, Result, Read, Write, BufReader};
 use std::fs::{self, File};
 use std::os::unix::fs::OpenOptionsExt;
-use std::path::Path;
+use std::path::{Path, PathBuf};
+use std::str::FromStr;
 
 use tar::{Archive, Builder, EntryType};
 use lzma::LzmaReader;
@@ -60,13 +61,26 @@ fn list(tar: &str) -> Result<()> {
     }
 }
 
-fn extract_inner<T: Read>(ar: &mut Archive<T>, verbose: bool) -> Result<()> {
+fn extract_inner<T: Read>(ar: &mut Archive<T>, verbose: bool, strip: usize) -> Result<()> {
     for entry_result in try!(ar.entries()) {
         let mut entry = try!(entry_result);
+
+        let path = {
+            let path = try!(entry.path());
+            let mut components = path.components();
+            for _ in 0..strip {
+                components.next();
+            }
+            components.as_path().to_path_buf()
+        };
+
+        if path == Path::new("") {
+            continue;
+        }
+
         match entry.header().entry_type() {
             EntryType::Regular => {
                 let mut file = {
-                    let path = try!(entry.path());
                     if let Some(parent) = path.parent() {
                         try!(fs::create_dir_all(parent));
                     }
@@ -77,13 +91,13 @@ fn extract_inner<T: Read>(ar: &mut Archive<T>, verbose: bool) -> Result<()> {
                             .truncate(true)
                             .create(true)
                             .mode(entry.header().mode().unwrap_or(644))
-                            .open(path)
+                            .open(&path)
                     )
                 };
                 try!(copy(&mut entry, &mut file));
             },
             EntryType::Directory => {
-                try!(fs::create_dir_all(try!(entry.path())));
+                try!(fs::create_dir_all(&path));
             },
             other => {
                 panic!("Unsupported entry type {:?}", other);
@@ -98,20 +112,22 @@ fn extract_inner<T: Read>(ar: &mut Archive<T>, verbose: bool) -> Result<()> {
     Ok(())
 }
 
-fn extract(tar: &str, verbose: bool) -> Result<()> {
-    if tar == "-" {
-        extract_inner(&mut Archive::new(stdin()), verbose)
+fn extract(tar: &Path, verbose: bool, strip: usize) -> Result<()> {
+    if tar == Path::new("-") {
+        extract_inner(&mut Archive::new(stdin()), verbose, strip)
     } else {
         let mime = tree_magic::from_filepath(Path::new(&tar));
         let file = BufReader::new(File::open(tar)?);
         if mime == "application/x-xz" {
             extract_inner(&mut Archive::new(LzmaReader::new_decompressor(file)
-                                            .map_err(|e| Error::new(ErrorKind::Other, e))?), verbose)
+                                            .map_err(|e| Error::new(ErrorKind::Other, e))?),
+                                            verbose, strip)
         } else if mime == "application/gzip" {
             extract_inner(&mut Archive::new(GzipDecoder::new(file)
-                                            .map_err(|e| Error::new(ErrorKind::Other, e))?), verbose)
+                                            .map_err(|e| Error::new(ErrorKind::Other, e))?),
+                                            verbose, strip)
         } else {
-            extract_inner(&mut Archive::new(file), verbose)
+            extract_inner(&mut Archive::new(file), verbose, strip)
         }
     }
 }
@@ -152,19 +168,27 @@ fn main() {
             },
             "x" | "xf" | "xvf" => {
                 let mut tar = None;
+                let mut strip = 0;
                 while let Some(arg) = args.next() {
-                    if arg == "-C" {
-                        env::set_current_dir(args.next().expect("-C requires path")).unwrap();
+                    if arg == "-C" || arg == "--directory" {
+                        env::set_current_dir(args.next().expect(&format!("{} requires path", arg))).unwrap();
                     } else if arg.starts_with("--directory=") {
                         env::set_current_dir(&arg[12..]).unwrap();
+                    } else if arg.starts_with("--strip-components") {
+                        let num = args.next().expect("--strip-components requires an integer");
+                        strip = usize::from_str(&num).expect("--strip-components requires an integer");
+                    } else if arg.starts_with("--strip-components=") {
+                        strip = usize::from_str(&arg[19..]).expect("--strip-components requires an integer");
                     } else if tar.is_none() {
-                        tar = Some(arg);
+                        let mut path = env::current_dir().unwrap();
+                        path.push(arg);
+                        tar = Some(path);
                     }
                 }
-                let tar = tar.unwrap_or("-".to_string());
+                let tar = tar.unwrap_or(PathBuf::from("-"));
 
                 let verbose = op.contains('v');
-                if let Err(err) = extract(&tar, verbose) {
+                if let Err(err) = extract(&tar, verbose, strip) {
                     write!(stderr(), "tar: extract: failed: {}\n", err).unwrap();
                     process::exit(1);
                 }
