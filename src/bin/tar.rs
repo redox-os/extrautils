@@ -151,7 +151,18 @@ fn main() {
                 }
             },
             "x" | "xf" | "xvf" => {
-                let tar = args.next().unwrap_or("-".to_string());
+                let mut tar = None;
+                while let Some(arg) = args.next() {
+                    if arg == "-C" {
+                        env::set_current_dir(args.next().expect("-C requires path")).unwrap();
+                    } else if arg.starts_with("--directory=") {
+                        env::set_current_dir(&arg[12..]).unwrap();
+                    } else if tar.is_none() {
+                        tar = Some(arg);
+                    }
+                }
+                let tar = tar.unwrap_or("-".to_string());
+
                 let verbose = op.contains('v');
                 if let Err(err) = extract(&tar, verbose) {
                     write!(stderr(), "tar: extract: failed: {}\n", err).unwrap();
