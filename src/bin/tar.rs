@@ -6,7 +6,7 @@ extern crate lzma;
 extern crate libflate;
 
 use std::{env, process};
-use std::io::{stdin, stdout, stderr, copy, Error, ErrorKind, Result, Read, Write};
+use std::io::{stdin, stdout, stderr, copy, Error, ErrorKind, Result, Read, Write, BufReader};
 use std::fs::{self, File};
 use std::os::unix::fs::OpenOptionsExt;
 use std::path::Path;
@@ -99,7 +99,7 @@ fn extract(tar: &str) -> Result<()> {
         extract_inner(&mut Archive::new(stdin()))
     } else {
         let mime = tree_magic::from_filepath(Path::new(&tar));
-        let file = File::open(tar)?;
+        let file = BufReader::new(File::open(tar)?);
         if mime == "application/x-xz" {
             extract_inner(&mut Archive::new(LzmaReader::new_decompressor(file)
                                             .map_err(|e| Error::new(ErrorKind::Other, e))?))
