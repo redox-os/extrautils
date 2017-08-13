@@ -8,7 +8,7 @@ extern crate libflate;
 use std::{env, process};
 use std::io::{stdin, stdout, stderr, copy, Error, ErrorKind, Result, Read, Write, BufReader};
 use std::fs::{self, File};
-use std::os::unix::fs::OpenOptionsExt;
+use std::os::unix::fs::{OpenOptionsExt, symlink};
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
@@ -61,6 +61,14 @@ fn list(tar: &str) -> Result<()> {
     }
 }
 
+fn create_symlink(link: PathBuf, target: &Path) -> Result<()> {
+    //delete existing file to make way for symlink
+    if link.exists() {
+        fs::remove_file(link.clone()).expect(&format!("could not overwrite: {:?}", link));
+    }
+    symlink(target, link)
+}
+
 fn extract_inner<T: Read>(ar: &mut Archive<T>, verbose: bool, strip: usize) -> Result<()> {
     for entry_result in try!(ar.entries()) {
         let mut entry = try!(entry_result);
@@ -98,6 +106,11 @@ fn extract_inner<T: Read>(ar: &mut Archive<T>, verbose: bool, strip: usize) -> R
             },
             EntryType::Directory => {
                 try!(fs::create_dir_all(&path));
+            },
+            EntryType::Symlink => {
+                if let Some(target) = entry.link_name().expect(&format!("Can't parse symlink target for: {:?}", path)) {
+                    try!(create_symlink(path, &target))
+                }
             },
             other => {
                 panic!("Unsupported entry type {:?}", other);
