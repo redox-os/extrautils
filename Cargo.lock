@@ -7,8 +7,10 @@ dependencies = [
  "pager 0.1.0 (git+https://github.com/redox-os/libpager.git)",
  "raw-cpuid 2.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "redox_syscall 0.1.29 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rust-lzma 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "tar 0.4.13 (git+https://github.com/redox-os/tar-rs.git)",
  "termion 1.5.0 (git+https://github.com/redox-os/termion.git?branch=redox_termios)",
+ "tree_magic 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -32,6 +34,21 @@ version = "0.1.0"
 source = "git+https://github.com/redox-os/libextra.git#402932084acd5fef4812945887ceaaa2ddd5f264"
 
 [[package]]
+name = "fixedbitset"
+version = "0.1.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "fnv"
+version = "1.0.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "lazy_static"
+version = "0.2.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
 name = "libc"
 version = "0.2.29"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -46,12 +63,36 @@ dependencies = [
 ]
 
 [[package]]
+name = "nom"
+version = "2.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "ordermap"
+version = "0.2.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
 name = "pager"
 version = "0.1.0"
 source = "git+https://github.com/redox-os/libpager.git#32faf0615fc345bedbdf243d6edc215ce20327e9"
 dependencies = [
  "termion 1.5.0 (git+https://github.com/redox-os/termion.git?branch=redox_termios)",
 ]
+
+[[package]]
+name = "petgraph"
+version = "0.4.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "fixedbitset 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)",
+ "ordermap 0.2.10 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "pkg-config"
+version = "0.3.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "raw-cpuid"
@@ -75,6 +116,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust-lzma"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "libc 0.2.29 (registry+https://github.com/rust-lang/crates.io-index)",
+ "pkg-config 0.3.9 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "tar"
 version = "0.4.13"
 source = "git+https://github.com/redox-os/tar-rs.git#b71c22029efc76611016fc4962f29afbe6d44bed"
@@ -94,6 +144,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "tree_magic"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "fnv 1.0.5 (registry+https://github.com/rust-lang/crates.io-index)",
+ "lazy_static 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
+ "nom 2.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "petgraph 0.4.5 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "xattr"
 version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -106,12 +167,21 @@ dependencies = [
 "checksum bitflags 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)" = "aad18937a628ec6abcd26d1489012cc0e18c21798210f491af69ded9b881106d"
 "checksum byteorder 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "ff81738b726f5d099632ceaffe7fb65b90212e8dce59d518729e7e8634032d3d"
 "checksum extra 0.1.0 (git+https://github.com/redox-os/libextra.git)" = "<none>"
+"checksum fixedbitset 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)" = "b0cb3d75726fa0c5ed3dce5dfcf0796affa2a60b33967f45012d86fb95a886f2"
+"checksum fnv 1.0.5 (registry+https://github.com/rust-lang/crates.io-index)" = "6cc484842f1e2884faf56f529f960cc12ad8c71ce96cc7abba0a067c98fee344"
+"checksum lazy_static 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)" = "3b37545ab726dd833ec6420aaba8231c5b320814b9029ad585555d2a03e94fbf"
 "checksum libc 0.2.29 (registry+https://github.com/rust-lang/crates.io-index)" = "8a014d9226c2cc402676fbe9ea2e15dd5222cd1dd57f576b5b283178c944a264"
 "checksum libflate 0.1.10 (registry+https://github.com/rust-lang/crates.io-index)" = "bb9e5c68bd981985afa70d22a81f339bb0ea8a071760e99894d6d393417e4a29"
+"checksum nom 2.2.1 (registry+https://github.com/rust-lang/crates.io-index)" = "cf51a729ecf40266a2368ad335a5fdde43471f545a967109cd62146ecf8b66ff"
+"checksum ordermap 0.2.10 (registry+https://github.com/rust-lang/crates.io-index)" = "c036a53e6bb62d7eee2edf7e087df56fd84c7bbae6a0bd93c2b9f54bddf62e03"
 "checksum pager 0.1.0 (git+https://github.com/redox-os/libpager.git)" = "<none>"
+"checksum petgraph 0.4.5 (registry+https://github.com/rust-lang/crates.io-index)" = "14c6ae5ccb73b438781abc93d35615019b1ad6e24b44116377fb819cfd7587de"
+"checksum pkg-config 0.3.9 (registry+https://github.com/rust-lang/crates.io-index)" = "3a8b4c6b8165cd1a1cd4b9b120978131389f64bdaf456435caa41e630edba903"
 "checksum raw-cpuid 2.0.2 (registry+https://github.com/rust-lang/crates.io-index)" = "13b844e4049605ff38fed943f5c7b2c691fad68d9d5bf074d2720554c4e48246"
 "checksum redox_syscall 0.1.29 (registry+https://github.com/rust-lang/crates.io-index)" = "3c9309631a35303bffb47e397198e3668cb544fe8834cd3da2a744441e70e524"
 "checksum redox_termios 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "7e891cfe48e9100a70a3b6eb652fef28920c117d366339687bd5576160db0f76"
+"checksum rust-lzma 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)" = "6765d37542f590bad98db0514eda612995a71100d91ac3929710bf93b5ba90a5"
 "checksum tar 0.4.13 (git+https://github.com/redox-os/tar-rs.git)" = "<none>"
 "checksum termion 1.5.0 (git+https://github.com/redox-os/termion.git?branch=redox_termios)" = "<none>"
+"checksum tree_magic 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "a349b03c8fb481a9e22f4650112a89be9586388a31ae30e504dab15da2f9582b"
 "checksum xattr 0.1.11 (registry+https://github.com/rust-lang/crates.io-index)" = "5f04de8a1346489a2f9e9bd8526b73d135ec554227b17568456e86aa35b6f3fc"
