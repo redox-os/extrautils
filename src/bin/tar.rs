@@ -5,6 +5,7 @@ extern crate tree_magic;
 extern crate lzma;
 extern crate libflate;
 extern crate filetime;
+extern crate bzip2;
 
 use std::{env, process};
 use std::io::{stdin, stdout, stderr, copy, Error, ErrorKind, Result, Read, Write, BufReader};
@@ -16,6 +17,7 @@ use std::str::FromStr;
 use tar::{Archive, Builder, EntryType};
 use lzma::LzmaReader;
 use libflate::gzip::Decoder as GzipDecoder;
+use bzip2::read::BzDecoder;
 use filetime::FileTime;
 
 fn create_inner<T: Write>(input: &str, ar: &mut Builder<T>) -> Result<()> {
@@ -134,6 +136,8 @@ fn extract(tar: &Path, verbose: bool, strip: usize) -> Result<()> {
             extract_inner(&mut Archive::new(GzipDecoder::new(file)
                                             .map_err(|e| Error::new(ErrorKind::Other, e))?),
                                             verbose, strip)
+        } else if mime == "application/x-bzip" {
+            extract_inner(&mut Archive::new(BzDecoder::new(file)), verbose, strip)
         } else {
             extract_inner(&mut Archive::new(file), verbose, strip)
         }
