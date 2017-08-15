@@ -4,6 +4,7 @@ extern crate tar;
 extern crate tree_magic;
 extern crate lzma;
 extern crate libflate;
+extern crate filetime;
 
 use std::{env, process};
 use std::io::{stdin, stdout, stderr, copy, Error, ErrorKind, Result, Read, Write, BufReader};
@@ -15,6 +16,7 @@ use std::str::FromStr;
 use tar::{Archive, Builder, EntryType};
 use lzma::LzmaReader;
 use libflate::gzip::Decoder as GzipDecoder;
+use filetime::FileTime;
 
 fn create_inner<T: Write>(input: &str, ar: &mut Builder<T>) -> Result<()> {
     if try!(fs::metadata(input)).is_dir() {
@@ -88,21 +90,27 @@ fn extract_inner<T: Read>(ar: &mut Archive<T>, verbose: bool, strip: usize) -> R
 
         match entry.header().entry_type() {
             EntryType::Regular => {
-                let mut file = {
-                    if let Some(parent) = path.parent() {
-                        try!(fs::create_dir_all(parent));
-                    }
-                    try!(
-                        fs::OpenOptions::new()
-                            .read(true)
-                            .write(true)
-                            .truncate(true)
-                            .create(true)
-                            .mode(entry.header().mode().unwrap_or(644))
-                            .open(&path)
-                    )
-                };
-                try!(copy(&mut entry, &mut file));
+                {
+                    let mut file = {
+                        if let Some(parent) = path.parent() {
+                            try!(fs::create_dir_all(parent));
+                        }
+                        try!(
+                            fs::OpenOptions::new()
+                                .read(true)
+                                .write(true)
+                                .truncate(true)
+                                .create(true)
+                                .mode(entry.header().mode().unwrap_or(644))
+                                .open(&path)
+                        )
+                    };
+                    try!(copy(&mut entry, &mut file));
+                }
+                if let Ok(mtime) = entry.header().mtime() {
+                    let mtime = FileTime::from_seconds_since_1970(mtime, 0);
+                    try!(filetime::set_file_times(&path, mtime, mtime));
+                }
             },
             EntryType::Directory => {
                 try!(fs::create_dir_all(&path));
