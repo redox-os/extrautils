@@ -86,6 +86,7 @@ filetime = "0.1.10"
 termion = { git = "https://github.com/redox-os/termion.git", branch = "redox_termios" }
 rust-lzma = "0.2"
 tree_magic = "0.2"
+bzip2 = { git = "https://github.com/ids1024/bzip2-rs", branch = "redox" }
 
 [replace]
 "filetime:0.1.10" = { git = "https://github.com/alexcrichton/filetime.git" }
