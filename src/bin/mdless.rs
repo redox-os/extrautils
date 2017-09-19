@@ -7,7 +7,7 @@ extern crate termion;
 
 use std::env::args;
 use std::fs::File;
-use std::io::{self, Write, Read, StdoutLock};
+use std::io::{self, Write, Read};
 use std::path::{Path, PathBuf};
 use std::str::Chars;
 
@@ -69,8 +69,7 @@ fn terminal_path() -> String {
 
 fn main() {
     let mut args = args().skip(1).peekable();
-    let stdout = io::stdout();
-    let mut stdout = stdout.lock();
+    let mut stdout = io::stdout();
     let stdin = io::stdin();
     let mut stdin = stdin.lock();
     let mut stderr = io::stderr();
@@ -189,7 +188,7 @@ impl Block {
         blocks
     }
 
-    fn draw(&self, to: &mut RawTerminal<&mut StdoutLock>, path: &PathBuf, next: &mut Vec<PathBuf>, next_i: usize) -> std::io::Result<usize> {
+    fn draw<W: IntoRawMode>(&self, to: &mut RawTerminal<W>, path: &PathBuf, next: &mut Vec<PathBuf>, next_i: usize) -> std::io::Result<usize> {
         let mut count = 0;
 
         match *self {
@@ -290,7 +289,7 @@ impl Buffer {
         Ok(res)
     }
 
-    fn draw(&self, to: &mut RawTerminal<&mut StdoutLock>, path: &PathBuf, next: &mut Vec<PathBuf>, next_i: usize, w: u16, h: u16) -> std::io::Result<usize> {
+    fn draw<W: IntoRawMode>(&self, to: &mut RawTerminal<W>, path: &PathBuf, next: &mut Vec<PathBuf>, next_i: usize, w: u16, h: u16) -> std::io::Result<usize> {
         write!(to, "{}{}{}", clear::All, style::Reset, cursor::Goto(1, 1))?;
 
         let mut y = 0;
@@ -336,7 +335,7 @@ impl Buffer {
     }
 }
 
-fn run(mut path: PathBuf, file: &mut Read, controls: &mut Read, stdout: &mut StdoutLock) -> std::io::Result<()> {
+fn run<W: IntoRawMode>(mut path: PathBuf, file: &mut Read, controls: &mut Read, stdout: &mut W) -> std::io::Result<()> {
     let mut stdout = stdout.into_raw_mode()?;
 
     let (w, h) = {

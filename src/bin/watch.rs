@@ -7,7 +7,7 @@ extern crate termion;
 
 use std::{cmp, str, thread};
 use std::env::args;
-use std::io::{self, Write, Read, StdoutLock};
+use std::io::{self, Write, Read};
 use std::process::{self, Command, Stdio};
 use std::time::Duration;
 
@@ -57,8 +57,7 @@ COPYRIGHT
 
 fn main() {
     let mut args = args().skip(1);
-    let stdout = io::stdout();
-    let mut stdout = stdout.lock();
+    let mut stdout = io::stdout();
     let mut stderr = io::stderr();
 
     let mut command = String::new();
@@ -98,10 +97,10 @@ fn main() {
         process::exit(1);
     }
 
-    run(command, interval, &mut stdout).try(&mut stderr);
+    run(command, interval, stdout).try(&mut stderr);
 }
 
-fn run(command: String, interval: u64, stdout: &mut StdoutLock) -> std::io::Result<()> {
+fn run<W: IntoRawMode>(command: String, interval: u64, mut stdout: W) -> std::io::Result<()> {
     let title = format!("Every {}s: {}", interval, command);
 
     let mut stdout = stdout.into_raw_mode()?;

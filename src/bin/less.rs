@@ -6,10 +6,11 @@ extern crate termion;
 
 use std::env::args;
 use std::fs::File;
-use std::io::{self, Write, Read, StdoutLock};
+use std::io::{self, Write, Read};
 use std::path::Path;
 
 use extra::option::OptionalExt;
+use termion::raw::IntoRawMode;
 
 static LONG_HELP: &'static str = /* @MANSTART{less} */ r#"
 NAME
@@ -51,8 +52,6 @@ COPYRIGHT
 
 fn main() {
     let mut args = args().skip(1).peekable();
-    let stdout = io::stdout();
-    let mut stdout = stdout.lock();
     let stdin = io::stdin();
     let mut stdin = stdin.lock();
     let mut stderr = io::stderr();
@@ -60,21 +59,21 @@ fn main() {
     if let Some(x) = args.peek() {
         if x == "--help" || x == "-h" {
             // Print help.
-            stdout.write(LONG_HELP.as_bytes()).try(&mut stderr);
+            io::stdout().write(LONG_HELP.as_bytes()).try(&mut stderr);
             return;
         }
     } else {
         let mut terminal = termion::get_tty().try(&mut stderr);
-        run("-", &mut stdin, &mut terminal, &mut stdout).try(&mut stderr);
+        run("-", &mut stdin, &mut terminal, io::stdout()).try(&mut stderr);
     };
 
     while let Some(filename) = args.next() {
         let mut file = File::open(Path::new(filename.as_str())).try(&mut stderr);
-        run(filename.as_str(), &mut file, &mut stdin, &mut stdout).try(&mut stderr);
+        run(filename.as_str(), &mut file, &mut stdin, io::stdout()).try(&mut stderr);
     }
 }
 
-fn run(path: &str, file: &mut Read, controls: &mut Read, stdout: &mut StdoutLock) -> std::io::Result<()> {
+fn run<W: IntoRawMode>(path: &str, file: &mut Read, controls: &mut Read, stdout: W) -> std::io::Result<()> {
     let mut string = String::new();
     file.read_to_string(&mut string)?;
 

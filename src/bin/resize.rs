@@ -9,8 +9,8 @@ use termion::raw::IntoRawMode;
 fn main() {
     let mut stderr = io::stderr();
 
-    let mut terminal = termion::get_tty().try(&mut stderr)
-                               .into_raw_mode().try(&mut stderr);
+    let mut terminal = termion::get_tty().try(&mut stderr);
+    let mut terminal = terminal.into_raw_mode().try(&mut stderr);
 
     write!(terminal, "{}", cursor::Save).unwrap();
     terminal.flush().unwrap();
@@ -22,7 +22,7 @@ fn main() {
 
     write!(terminal, "{}", cursor::Restore).unwrap();
     terminal.flush().unwrap();
-    
+
     drop(terminal);
 
     println!("export COLUMNS={};", w);
