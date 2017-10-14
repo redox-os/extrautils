@@ -8,7 +8,7 @@ use std::process::exit;
 use extra::option::OptionalExt;
 use extra::io::WriteExt;
 
-static MAN_PAGE: &'static str = /* @MANSTART{grep} */ r#"
+static MAN_PAGE: &'static str = /* @MANSTART{keymap} */ r#"
 NAME
     keymap - change the keymap
 
@@ -69,7 +69,7 @@ fn main() {
                 Err(e) => println!("keymap: could not change keymap: {}", e),
                 _ => {}
             }
-            
+
         },
         Err(err) => {
             println!("keymap: failed to open display: {}", err);
