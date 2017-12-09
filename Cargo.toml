@@ -12,10 +12,6 @@ name = "cur"
 path = "src/bin/cur.rs"
 
 [[bin]]
-name = "cksum"
-path = "src/bin/cksum.rs"
-
-[[bin]]
 name = "dmesg"
 path = "src/bin/dmesg.rs"
 
