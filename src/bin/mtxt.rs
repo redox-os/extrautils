@@ -10,7 +10,7 @@ use std::process::exit;
 use extra::option::OptionalExt;
 use extra::io::{fail, WriteExt};
 
-static HELP: &'static str = /* @MANSTART{mtxt} */ r#"
+static MAN_PAGE: &'static str = /* @MANSTART{mtxt} */ r#"
 NAME
     mtxt - a simple tool to manipulate text from standard input.
 
@@ -89,8 +89,8 @@ fn main() {
             "-a" | "--strip-non-ascii" => strip_non_ascii = true,
             "-h" | "--help" => {
                 // The help page.
-                stdout.write(HELP.as_bytes()).try(&mut stderr);
-            }
+                stdout.write(MAN_PAGE.as_bytes()).try(&mut stderr);
+            },
             a => {
                 // The argument, a, is unknown.
                 stderr.write(b"error: unknown argument, ").try(&mut stderr);

@@ -8,7 +8,7 @@ use std::io::{self, Write, Read};
 use extra::option::OptionalExt;
 use extra::io::fail;
 
-static HELP: &'static str = /* @MANSTART{cur} */ r#"
+static MAN_PAGE: &'static str = /* @MANSTART{cur} */ r#"
 NAME
     cur - freely move you cursor using H, J, K, and L (Vi-bindings).
 
@@ -68,7 +68,7 @@ fn main() {
         match i.as_str() {
             // Print the help page.
             "-h" | "--help" => {
-                stdout.write(HELP.as_bytes()).try(&mut stderr);
+                stdout.write(MAN_PAGE.as_bytes()).try(&mut stderr);
             },
             // This argument is unknown.
             _ => fail("unknown argument.", &mut stderr),
