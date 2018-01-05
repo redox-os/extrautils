@@ -12,7 +12,7 @@ use std::path::Path;
 use extra::option::OptionalExt;
 use termion::raw::IntoRawMode;
 
-static LONG_HELP: &'static str = /* @MANSTART{less} */ r#"
+static MAN_PAGE: &'static str = /* @MANSTART{less} */ r#"
 NAME
     less - view a text file.
 
@@ -59,7 +59,7 @@ fn main() {
     if let Some(x) = args.peek() {
         if x == "--help" || x == "-h" {
             // Print help.
-            io::stdout().write(LONG_HELP.as_bytes()).try(&mut stderr);
+            io::stdout().write(MAN_PAGE.as_bytes()).try(&mut stderr);
             return;
         }
     } else {
