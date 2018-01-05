@@ -10,7 +10,7 @@ use std::process::exit;
 use extra::option::OptionalExt;
 use extra::io::{fail, WriteExt};
 
-static HELP: &'static str = r#"
+static HELP: &'static str = /* @MANSTART{mtxt} */ r#"
 NAME
     mtxt - a simple tool to manipulate text from standard input.
 
