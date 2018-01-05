@@ -16,7 +16,7 @@ use extra::option::OptionalExt;
 use termion::{async_stdin, clear, cursor, style, terminal_size};
 use termion::raw::IntoRawMode;
 
-static LONG_HELP: &'static str = /* @MANSTART{watch} */ r#"
+static MAN_PAGE: &'static str = /* @MANSTART{watch} */ r#"
 NAME
     watch - execute a program periodically, showing output fullscreen
 
@@ -67,7 +67,7 @@ fn main() {
         match x.as_str() {
             "--help" | "-h" => {
                 // Print help.
-                stdout.write(LONG_HELP.as_bytes()).try(&mut stderr);
+                stdout.write(MAN_PAGE.as_bytes()).try(&mut stderr);
                 return;
             },
             "--interval" | "-n" => {

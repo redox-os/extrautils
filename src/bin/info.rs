@@ -2,7 +2,7 @@ use std::env;
 use std::io::{stdout, Write};
 use std::process::Command;
 
-static HELP: &'static str = /* @MANSTART{info} */ r#"
+static MAN_PAGE: &'static str = /* @MANSTART{info} */ r#"
 NAME
     info - view an info page.
 
@@ -44,7 +44,7 @@ fn main() {
         match arg.as_str() {
             "--help" | "-h" => {
                 // Print help.
-                stdout().write(HELP.as_bytes()).unwrap();
+                stdout().write(MAN_PAGE.as_bytes()).unwrap();
                 return;
             },
             page => {

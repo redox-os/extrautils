@@ -10,7 +10,7 @@ use std::time::Duration;
 
 use extra::option::OptionalExt;
 
-static LONG_HELP: &'static str = /* @MANSTART{rem} */ r#"
+static MAN_PAGE: &'static str = /* @MANSTART{rem} */ r#"
 NAME
     rem - set a count-down.
 
@@ -109,7 +109,7 @@ fn main() {
         match arg.as_str() {
             "--help" => {
                 // Print help.
-                stdout.write(LONG_HELP.as_bytes()).try(&mut stderr);
+                stdout.write(MAN_PAGE.as_bytes()).try(&mut stderr);
                 return;
             },
             "-h" => {
