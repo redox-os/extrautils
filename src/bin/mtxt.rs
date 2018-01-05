@@ -3,9 +3,8 @@
 
 extern crate extra;
 
-use std::ascii::AsciiExt;
 use std::env::args;
-use std::io::{self, Write, Read};
+use std::io::{self, Read, Write};
 use std::process::exit;
 
 use extra::option::OptionalExt;
@@ -99,7 +98,7 @@ fn main() {
                 stderr.write(b".\n").try(&mut stderr);
                 stderr.flush().try(&mut stderr);
                 exit(1);
-            },
+            }
         }
     }
 
@@ -124,12 +123,16 @@ fn main() {
 
         // If -u is set, convert to uppercase
         if to_uppercase {
-            for uppercase in i.to_uppercase().filter(|x| !strip_non_ascii || x.is_ascii() ) {
+            for uppercase in i.to_uppercase()
+                .filter(|x| !strip_non_ascii || x.is_ascii())
+            {
                 stdout.write_char(uppercase).try(&mut stderr);
             }
         // If -l is set, convert to lowercase
         } else if to_lowercase {
-            for lowercase in i.to_lowercase().filter(|x| !strip_non_ascii || x.is_ascii()) {
+            for lowercase in i.to_lowercase()
+                .filter(|x| !strip_non_ascii || x.is_ascii())
+            {
                 stdout.write_char(lowercase).try(&mut stderr);
             }
         // If -a is set, strip non-ASCII.
