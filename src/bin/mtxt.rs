@@ -8,18 +8,21 @@ use std::io::{self, Read, Write};
 use std::process::exit;
 
 use extra::option::OptionalExt;
-use extra::io::{fail, WriteExt};
+use extra::io::fail;
 
-static MAN_PAGE: &'static str = /* @MANSTART{mtxt} */ r#"
+static MAN_PAGE: &'static str = /* @MANSTART{mtxt} */r#"
 NAME
     mtxt - a simple tool to manipulate text from standard input.
 
 SYNOPSIS
-    mtxt [-h | --help | -u | --to-uppercase-w | -l | --to-lowercase | -a | --strip-non-ascii]
+    mtxt (-u | --to-uppercase) [(-a | --strip-non-ascii)]
+    mtxt (-l | --to-lowercase) [(-a | --strip-non-ascii)]
+    mtxt (-a | --strip-non-ascii)
+    mtxt (-h | --help)
 
 DESCRIPTION
-    This utility will manipulate UTF-8 encoded text from the standard input. Unicode is supported.
-    The flags are composable, unless otherwise stated.
+    This utility will change UTF-8(Unicode) encoded text from the standard input
+    according to passed arguments.
 
 OPTIONS
     -h
@@ -32,11 +35,12 @@ OPTIONS
 
     -l
     --lowercase
-        Convert the input to lowercase. Works correctly with Unicode.
+        Convert the input to lowercase. Works correctly with Unicode. Incompatible with '-u'.
 
     -a
     --strip-non-ascii
         Strip the input for non-ASCII bytes, outputting a valid ASCII string.
+        Compatible with '-l' and '-u'.
 
 EXAMPLES
     $ echo Δ | mtxt -l
@@ -72,12 +76,12 @@ COPYRIGHT
 
 fn main() {
     let stdin = io::stdin();
-    let stdin = stdin.lock();
     let stdout = io::stdout();
+
+    let stdin = stdin.lock();
     let mut stdout = stdout.lock();
     let mut stderr = io::stderr();
 
-    // These are the options.
     let mut to_uppercase = false;
     let mut to_lowercase = false;
     let mut strip_non_ascii = false;
@@ -88,56 +92,79 @@ fn main() {
             "-l" | "--to-lowercase" => to_lowercase = true,
             "-a" | "--strip-non-ascii" => strip_non_ascii = true,
             "-h" | "--help" => {
-                // The help page.
                 stdout.write(MAN_PAGE.as_bytes()).try(&mut stderr);
-            },
-            a => {
-                // The argument, a, is unknown.
-                stderr.write(b"error: unknown argument, ").try(&mut stderr);
-                stderr.write(a.as_bytes()).try(&mut stderr);
-                stderr.write(b".\n").try(&mut stderr);
-                stderr.flush().try(&mut stderr);
-                exit(1);
+                exit(0);
             }
+            _ => fail(&format!("error: unknown argument, {}.\n", arg), &mut stderr),
         }
     }
 
     if to_lowercase && to_uppercase {
-        // Fail, since -u and -l are incompatible.
         fail("-u and -l are incompatible. Aborting.", &mut stderr);
     }
 
-    // My eyes bleed.
-    //
-    // Anyone?
-    // ...
-    //
-    // Silence.
-    //
-    // If you see this, rewrite the code below. Now, you can't say no. Too late.
-    // Muhahahaha.
-    for i in stdin.chars() {
-        let i = i.try(&mut stderr);
-
-        // TODO handle -a more efficient
-
-        // If -u is set, convert to uppercase
-        if to_uppercase {
-            for uppercase in i.to_uppercase()
-                .filter(|x| !strip_non_ascii || x.is_ascii())
-            {
-                stdout.write_char(uppercase).try(&mut stderr);
-            }
-        // If -l is set, convert to lowercase
-        } else if to_lowercase {
-            for lowercase in i.to_lowercase()
-                .filter(|x| !strip_non_ascii || x.is_ascii())
-            {
-                stdout.write_char(lowercase).try(&mut stderr);
-            }
-        // If -a is set, strip non-ASCII.
-        } else if !strip_non_ascii || strip_non_ascii && i.is_ascii() {
-            stdout.write_char(i).try(&mut stderr);
+    // Handle five separate cases to eliminate checks:
+    // 1. -u
+    // 2. -u -a
+    // 3. -l
+    // 4. -l -a
+    // 5. -a
+    if to_uppercase {
+        if strip_non_ascii {
+            // -u -a
+            stdin
+                .chars()
+                .filter(|x| {
+                    if let &Ok(c) = x {
+                        c.is_ascii()
+                    } else {
+                        false
+                    }
+                })
+                .fold((), |_, x| {
+                    stdout
+                        .write(x.unwrap().to_uppercase().to_string().as_bytes())
+                        .try(&mut stderr);
+                });
+        } else {
+            // -u
+            stdin.chars().fold((), |_, x| {
+                stdout
+                    .write(x.unwrap().to_uppercase().to_string().as_bytes())
+                    .try(&mut stderr);
+            });
         }
+    } else if to_lowercase {
+        if strip_non_ascii {
+            // -l -a
+            stdin
+                .chars()
+                .filter(|x| {
+                    if let &Ok(c) = x {
+                        c.is_ascii()
+                    } else {
+                        false
+                    }
+                })
+                .fold((), |_, x| {
+                    stdout
+                        .write(x.unwrap().to_lowercase().to_string().as_bytes())
+                        .try(&mut stderr);
+                });
+        } else {
+            // -l
+            stdin.chars().fold((), |_, x| {
+                stdout
+                    .write(x.unwrap().to_lowercase().to_string().as_bytes())
+                    .try(&mut stderr);
+            });
+        }
+    } else if strip_non_ascii {
+        // -a
+        stdin.chars().fold((), |_, x| {
+            stdout
+                .write(x.unwrap().to_string().as_bytes())
+                .try(&mut stderr);
+        });
     }
 }
