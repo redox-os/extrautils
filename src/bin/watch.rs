@@ -1,27 +1,26 @@
 #![deny(warnings)]
-
-// TODO support reading from standard input
-
 extern crate extra;
 extern crate termion;
 
 use std::{cmp, str, thread};
 use std::env::args;
-use std::io::{self, Write, Read};
-use std::process::{self, Command, Stdio};
+use std::io::{self, Read, Write};
+use std::process::{Command, Stdio};
 use std::time::Duration;
 
+use extra::io::fail;
 use extra::option::OptionalExt;
 
 use termion::{async_stdin, clear, cursor, style, terminal_size};
 use termion::raw::IntoRawMode;
 
-static MAN_PAGE: &'static str = /* @MANSTART{watch} */ r#"
+static MAN_PAGE: &str = /* @MANSTART{watch} */ r#"
 NAME
     watch - execute a program periodically, showing output fullscreen
 
 SYNOPSIS
-    watch [-h | --help] command
+    watch (-n | --interval) <interval>
+    watch (-h | --help) command
 
 DESCRIPTION
     Runs command repeatedly, displaying its output and errors. This allows you to watch the program
@@ -29,6 +28,9 @@ DESCRIPTION
     run until interrupted.
 
 OPTIONS
+    --interval, -n
+        Interval in seconds between runs. 2 is default.
+
     --help, -h
         Print this manual page.
 
@@ -57,33 +59,35 @@ COPYRIGHT
 
 fn main() {
     let mut args = args().skip(1);
+    let stdin = io::stdin();
+
+    let mut stdin = stdin.lock();
     let mut stdout = io::stdout();
     let mut stderr = io::stderr();
 
     let mut command = String::new();
     let mut interval = 2;
 
+    let mut read_from_stdin = true;
     while let Some(x) = args.next() {
         match x.as_str() {
-            "--help" | "-h" => {
-                // Print help.
+            "-h" | "--help" => {
                 stdout.write(MAN_PAGE.as_bytes()).try(&mut stderr);
                 return;
-            },
-            "--interval" | "-n" => {
+            }
+            "-n" | "--interval" => {
                 if let Some(interval_str) = args.next() {
                     if let Ok(interval_num) = interval_str.parse::<u64>() {
                         interval = cmp::max(1, interval_num);
                     } else {
-                        stderr.write(b"watch: interval argument not specified").unwrap();
-                        process::exit(1);
+                        fail("watch: interval argument not specified", &mut stderr);
                     }
                 } else {
-                    stderr.write(b"watch: interval argument not specified").unwrap();
-                    process::exit(1);
+                    fail("watch: interval argument not specified", &mut stderr);
                 }
-            },
+            }
             arg => {
+                read_from_stdin = false;
                 if !command.is_empty() {
                     command.push(' ');
                 }
@@ -92,29 +96,37 @@ fn main() {
         }
     }
 
-    if command.is_empty() {
-        stderr.write(b"watch: command argument not specified").unwrap();
-        process::exit(1);
+    if read_from_stdin && stdin.read_to_string(&mut command).is_err() || command.is_empty() {
+        fail(
+            "watch: error reading command from standard input",
+            &mut stderr,
+        );
     }
-
-    run(command, interval, stdout).try(&mut stderr);
+    run(command.trim_right_matches("\n"), interval, stdout).try(&mut stderr);
 }
 
-fn run<W: IntoRawMode>(command: String, interval: u64, mut stdout: W) -> std::io::Result<()> {
+fn run<W: IntoRawMode>(command: &str, interval: u64, mut stdout: W) -> std::io::Result<()> {
     let title = format!("Every {}s: {}", interval, command);
-
     let mut stdout = stdout.into_raw_mode()?;
-
     let (w, h) = terminal_size()?;
-
     let mut stdin = async_stdin();
 
     'watching: loop {
-        write!(stdout, "{}{}{}", clear::All, style::Reset, cursor::Goto(1, 1))?;
+        write!(
+            stdout,
+            "{}{}{}",
+            clear::All,
+            style::Reset,
+            cursor::Goto(1, 1)
+        )?;
 
-        let child = Command::new("sh").arg("-c").arg(&command)
-                        .stdin(Stdio::null()).stdout(Stdio::piped()).stderr(Stdio::piped())
-                        .spawn()?;
+        let child = Command::new("sh")
+            .arg("-c")
+            .arg(command)
+            .stdin(Stdio::null())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()?;
         let mut output = String::new();
         if let Some(mut stdout) = child.stdout {
             stdout.read_to_string(&mut output)?;
@@ -136,22 +148,34 @@ fn run<W: IntoRawMode>(command: String, interval: u64, mut stdout: W) -> std::io
             }
         }
 
-        write!(stdout, "{}{}{}{}", cursor::Goto(1, h), style::Invert, title, style::NoInvert)?;
+        write!(
+            stdout,
+            "{}{}{}{}",
+            cursor::Goto(1, h),
+            style::Invert,
+            title,
+            style::NoInvert
+        )?;
 
         stdout.flush()?;
 
-        for _second in 0..interval*10 {
+        for _second in 0..interval * 10 {
             for b in (&mut stdin).bytes() {
                 if b? == b'q' {
                     break 'watching;
                 }
             }
-
             thread::sleep(Duration::new(0, 100000000));
         }
     }
 
-    write!(stdout, "{}{}{}", clear::All, style::Reset, cursor::Goto(1, 1))?;
+    write!(
+        stdout,
+        "{}{}{}",
+        clear::All,
+        style::Reset,
+        cursor::Goto(1, 1)
+    )?;
 
     Ok(())
 }
