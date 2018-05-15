@@ -100,7 +100,7 @@ fn main() {
     run(command, interval, stdout).try(&mut stderr);
 }
 
-fn run<W: IntoRawMode>(command: String, interval: u64, mut stdout: W) -> std::io::Result<()> {
+fn run<W: IntoRawMode>(command: String, interval: u64, stdout: W) -> std::io::Result<()> {
     let title = format!("Every {}s: {}", interval, command);
 
     let mut stdout = stdout.into_raw_mode()?;
