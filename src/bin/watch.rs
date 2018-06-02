@@ -6,7 +6,7 @@ extern crate extra;
 extern crate termion;
 
 use std::{cmp, str, thread};
-use std::env::args;
+use std::env::{self, args};
 use std::io::{self, Write, Read};
 use std::process::{self, Command, Stdio};
 use std::time::Duration;
@@ -21,7 +21,7 @@ NAME
     watch - execute a program periodically, showing output fullscreen
 
 SYNOPSIS
-    watch [-h | --help] command
+    watch [-h | --help] [-n N | --interval N] command
 
 DESCRIPTION
     Runs command repeatedly, displaying its output and errors. This allows you to watch the program
@@ -103,6 +103,8 @@ fn main() {
 fn run<W: IntoRawMode>(command: String, interval: u64, stdout: W) -> std::io::Result<()> {
     let title = format!("Every {}s: {}", interval, command);
 
+    let shell = env::var("SHELL").unwrap_or(String::from("sh"));
+
     let mut stdout = stdout.into_raw_mode()?;
 
     let (w, h) = terminal_size()?;
@@ -112,13 +114,11 @@ fn run<W: IntoRawMode>(command: String, interval: u64, stdout: W) -> std::io::Re
     'watching: loop {
         write!(stdout, "{}{}{}", clear::All, style::Reset, cursor::Goto(1, 1))?;
 
-        let child = Command::new("sh").arg("-c").arg(&command)
+        let child = Command::new(&shell).arg("-c").arg(&command)
                         .stdin(Stdio::null()).stdout(Stdio::piped()).stderr(Stdio::piped())
-                        .spawn()?;
-        let mut output = String::new();
-        if let Some(mut stdout) = child.stdout {
-            stdout.read_to_string(&mut output)?;
-        }
+                        .output()?;
+
+        let output = String::from_utf8_lossy(&child.stdout);
 
         let mut y = 0;
         for line in output.lines() {
