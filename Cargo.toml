@@ -76,9 +76,9 @@ name = "watch"
 path = "src/bin/watch.rs"
 
 [dependencies]
-extra = { git = "https://github.com/redox-os/libextra.git" }
+extra = { git = "https://gitlab.redox-os.org/redox-os/libextra.git" }
 libflate = "0.1.4"
-pager = { git = "https://github.com/redox-os/libpager.git" }
+pager = { git = "https://gitlab.redox-os.org/redox-os/libpager.git" }
 raw-cpuid = "2.0"
 redox_syscall = "0.1"
 tar = { git = "https://github.com/alexcrichton/tar-rs.git" }
@@ -92,4 +92,4 @@ zip = "0.3"
 
 [patch.crates-io]
 "filetime" = { git = "https://github.com/alexcrichton/filetime.git" }
-"termion" = { git = "https://github.com/redox-os/termion.git" }
+"termion" = { git = "https://gitlab.redox-os.org/redox-os/termion.git" }
