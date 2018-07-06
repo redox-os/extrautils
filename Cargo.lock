@@ -63,6 +63,7 @@ source = "git+https://gitlab.redox-os.org/redox-os/libextra.git#f38608acd9cc00e1
 name = "extrautils"
 version = "0.1.0"
 dependencies = [
+ "byteorder 1.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "bzip2 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "extra 0.1.0 (git+https://gitlab.redox-os.org/redox-os/libextra.git)",
  "filetime 0.1.15 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -180,7 +181,7 @@ name = "pager"
 version = "0.1.0"
 source = "git+https://gitlab.redox-os.org/redox-os/libpager.git#5253bb4ba5be8ffc278b81b0a3f0558df51967db"
 dependencies = [
- "termion 1.5.1 (git+https://gitlab.redox-os.org/redox-os/termion.git)",
+ "termion 1.5.1 (git+https://github.com/redox-os/termion.git)",
 ]
 
 [[package]]
@@ -241,6 +242,16 @@ dependencies = [
  "libc 0.2.40 (registry+https://github.com/rust-lang/crates.io-index)",
  "redox_syscall 0.1.37 (registry+https://github.com/rust-lang/crates.io-index)",
  "xattr 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "termion"
+version = "1.5.1"
+source = "git+https://github.com/redox-os/termion.git#130fc9acf5e23295674bb6096f9ad6c2d9645653"
+dependencies = [
+ "libc 0.2.40 (registry+https://github.com/rust-lang/crates.io-index)",
+ "redox_syscall 0.1.37 (registry+https://github.com/rust-lang/crates.io-index)",
+ "redox_termios 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -351,6 +362,7 @@ source = "git+https://github.com/alexcrichton/filetime.git#dfb9f81980bfc1765e36e
 "checksum redox_termios 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "7e891cfe48e9100a70a3b6eb652fef28920c117d366339687bd5576160db0f76"
 "checksum rust-lzma 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)" = "6765d37542f590bad98db0514eda612995a71100d91ac3929710bf93b5ba90a5"
 "checksum tar 0.4.15 (git+https://github.com/alexcrichton/tar-rs.git)" = "<none>"
+"checksum termion 1.5.1 (git+https://github.com/redox-os/termion.git)" = "<none>"
 "checksum termion 1.5.1 (git+https://gitlab.redox-os.org/redox-os/termion.git)" = "<none>"
 "checksum time 0.1.40 (registry+https://github.com/rust-lang/crates.io-index)" = "d825be0eb33fda1a7e68012d51e9c7f451dc1a69391e7fdc197060bb8c56667b"
 "checksum tree_magic 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "a349b03c8fb481a9e22f4650112a89be9586388a31ae30e504dab15da2f9582b"

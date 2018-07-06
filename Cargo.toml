@@ -88,6 +88,7 @@ rust-lzma = "0.2"
 tree_magic = "0.2"
 bzip2 = "0.3"
 zip = "0.3"
+byteorder = "1.2.3"
 
 
 [patch.crates-io]
