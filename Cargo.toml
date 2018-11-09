@@ -47,9 +47,9 @@ path = "src/bin/man.rs"
 name = "mdless"
 path = "src/bin/mdless.rs"
 
-[[bin]]
-name = "mtxt"
-path = "src/bin/mtxt.rs"
+# [[bin]]
+# name = "mtxt"
+# path = "src/bin/mtxt.rs"
 
 [[bin]]
 name = "rem"
