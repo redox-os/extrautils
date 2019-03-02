@@ -6,6 +6,7 @@ extern crate syscall;
 use std::env;
 use std::fs::File;
 use std::io::{self, Read, Write};
+use std::path::Path;
 
 // std::fmt::Write conflicts with std::io::Write, hence the alias
 use std::fmt::Write as FmtWrite;
@@ -17,7 +18,7 @@ const SECONDS_PER_DAY: i64 = 86400;
 fn main() {
     let user = env::var("USER").unwrap_or(String::new());
     let mut hostname = String::new();
-    if let Ok(mut file) = File::open("/etc/hostname") {
+    if let Ok(mut file) = File::open("file:/etc/hostname") {
         let _ = file.read_to_string(&mut hostname);
     }
 
@@ -48,6 +49,15 @@ fn main() {
         if let Err(_) = fmt_result {
             // We probably don't want to panic! on this error
             println!("error: couldn't parse uptime");
+        }
+    }
+
+    let mut shell = String::new();
+    {
+        if let Ok(shell_path) = env::var("SHELL") {
+            if let Some(file_name) = Path::new(&shell_path).file_name() {
+                shell = file_name.to_str().unwrap_or("").to_string();
+            }
         }
     }
 
@@ -117,7 +127,7 @@ fn main() {
         format!("\x1B[1;38;5;75mOS:\x1B[0m redox-os"),
         format!("\x1B[1;38;5;75mKernel:\x1B[0m redox"),
         format!("\x1B[1;38;5;75mUptime:\x1B[0m {}", uptime_str),
-        format!("\x1B[1;38;5;75mShell:\x1B[0m ion"),
+        format!("\x1B[1;38;5;75mShell:\x1B[0m {}", shell),
         format!("\x1B[1;38;5;75mResolution:\x1B[0m {}x{}", width, height),
         format!("\x1B[1;38;5;75mDE:\x1B[0m orbital"),
         format!("\x1B[1;38;5;75mWM:\x1B[0m orbital"),
