@@ -32,9 +32,9 @@ fn main() {
                 let input = fs::File::open(&arg).try(&mut stderr);
                 let mut decoder = Decoder::new(input).try(&mut stderr);
 
-                let mut output = fs::File::create(&arg.trim_right_matches(".gz")).try(&mut stderr);
+                let mut output = fs::File::create(&arg.trim_end_matches(".gz")).try(&mut stderr);
                 io::copy(&mut decoder, &mut output).try(&mut stderr);
-                
+
                 output.flush().try(&mut stderr);
             }
             if ! keep {
