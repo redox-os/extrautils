@@ -55,7 +55,7 @@ OPTIONS
 
 AUTHOR
     This program was written by Ticki for Redox OS. Bugs, issues, or feature requests should be
-    reported in the Github repository, 'redox-os/extrautils'.
+    reported in the Gitlab repository, 'redox-os/extrautils'.
 
 COPYRIGHT
     Copyright (c) 2016 Ticki
