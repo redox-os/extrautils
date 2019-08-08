@@ -1,5 +1,3 @@
-#![deny(warnings)]
-
 extern crate tar;
 extern crate tree_magic;
 extern crate lzma;

@@ -1,5 +1,3 @@
-#![deny(warnings)]
-
 // TODO support reading from standard input
 
 extern crate extra;

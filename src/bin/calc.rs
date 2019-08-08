@@ -1,4 +1,3 @@
-#![deny(warnings)]
 extern crate extra;
 use extra::option::OptionalExt;
 use extra::io::{fail, WriteExt};

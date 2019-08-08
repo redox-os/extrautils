@@ -1,5 +1,3 @@
-#![deny(warnings)]
-
 extern crate raw_cpuid;
 extern crate syscall;
 

@@ -1,5 +1,3 @@
-#![deny(warnings)]
-
 extern crate extra;
 extern crate libflate;
 
@@ -33,7 +31,7 @@ fn main() {
 
             let mut input = fs::File::open(&arg).try(&mut stderr);
             io::copy(&mut input, &mut encoder).try(&mut stderr);
-            
+
             let mut encoded = encoder.finish().into_result().try(&mut stderr);
             encoded.flush().try(&mut stderr);
         }

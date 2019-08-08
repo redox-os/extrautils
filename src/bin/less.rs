@@ -1,5 +1,3 @@
-#![deny(warnings)]
-
 extern crate extra;
 extern crate pager;
 extern crate termion;
