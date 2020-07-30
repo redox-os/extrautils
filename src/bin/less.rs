@@ -66,8 +66,17 @@ fn main() {
     };
 
     while let Some(filename) = args.next() {
-        let mut file = File::open(Path::new(filename.as_str())).try(&mut stderr);
-        run(filename.as_str(), &mut file, &mut stdin, io::stdout()).try(&mut stderr);
+        let file = File::open(Path::new(filename.as_str()));
+        match file {
+            Ok(mut open_file) => {
+                if let Err(err) = run(filename.as_str(), &mut open_file, &mut stdin, io::stdout()) {
+                    eprintln!("{}: {}", filename, err);
+                }
+            }
+            Err(err) => {
+                eprintln!("{}: {}", filename, err);
+            }
+        }
     }
 }
 

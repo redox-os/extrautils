@@ -83,9 +83,19 @@ fn main() {
         run(PathBuf::from("-"), &mut stdin, &mut terminal, &mut stdout).try(&mut stderr);
     };
 
-    while let Some(filename) = args.next().map(|x| PathBuf::from(x)) {
-        let mut file = File::open(&filename).try(&mut stderr);
-        run(filename, &mut file, &mut stdin, &mut stdout).try(&mut stderr);
+    while let Some(filename) = args.next() {
+        let filepath = PathBuf::from(filename.as_str());
+        let file = File::open(&filepath);
+        match file {
+            Ok(mut open_file) => {
+                if let Err(err) = run(filepath, &mut open_file, &mut stdin, &mut io::stdout()) {
+                    eprintln!("{}: {}", &filename, err);
+                }
+            }
+            Err(err) => {
+                eprintln!("{}: {}", &filename, err);
+            }
+        }
     }
 }
 
