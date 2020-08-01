@@ -19,19 +19,19 @@ use bzip2::read::BzDecoder;
 use filetime::FileTime;
 
 fn create_inner<T: Write>(input: &str, ar: &mut Builder<T>) -> Result<()> {
-    if try!(fs::metadata(input)).is_dir() {
-        for entry_result in try!(fs::read_dir(input)) {
-            let entry = try!(entry_result);
-            if try!(fs::metadata(entry.path())).is_dir() {
-                try!(create_inner(entry.path().to_str().unwrap(), ar));
+    if fs::metadata(input)?.is_dir() {
+        for entry_result in fs::read_dir(input)? {
+            let entry = entry_result?;
+            if fs::metadata(entry.path())?.is_dir() {
+                create_inner(entry.path().to_str().unwrap(), ar)?;
             } else {
                 println!("{}", entry.path().display());
-                try!(ar.append_path(entry.path()));
+                ar.append_path(entry.path())?;
             }
         }
     } else {
         println!("{}", input);
-        try!(ar.append_path(input));
+        ar.append_path(input)?;
     }
 
     Ok(())
@@ -41,14 +41,14 @@ fn create(input: &str, tar: &str) -> Result<()> {
     if tar == "-" {
         create_inner(input, &mut Builder::new(stdout()))
     } else {
-        create_inner(input, &mut Builder::new(try!(File::create(tar))))
+        create_inner(input, &mut Builder::new(File::create(tar)?))
     }
 }
 
 fn list_inner<T: Read>(ar: &mut Archive<T>) -> Result<()> {
-    for entry_result in try!(ar.entries()) {
-        let entry = try!(entry_result);
-        let path = try!(entry.path());
+    for entry_result in ar.entries()? {
+        let entry = entry_result?;
+        let path = entry.path()?;
         println!("{}", path.display());
     }
 
@@ -59,7 +59,7 @@ fn list(tar: &str) -> Result<()> {
     if tar == "-" {
         list_inner(&mut Archive::new(stdin()))
     } else {
-        list_inner(&mut Archive::new(try!(File::open(tar))))
+        list_inner(&mut Archive::new(File::open(tar)?))
     }
 }
 
@@ -72,11 +72,11 @@ fn create_symlink(link: PathBuf, target: &Path) -> Result<()> {
 }
 
 fn extract_inner<T: Read>(ar: &mut Archive<T>, verbose: bool, strip: usize) -> Result<()> {
-    for entry_result in try!(ar.entries()) {
-        let mut entry = try!(entry_result);
+    for entry_result in ar.entries()? {
+        let mut entry = entry_result?;
 
         let path = {
-            let path = try!(entry.path());
+            let path = entry.path()?;
             let mut components = path.components();
             for _ in 0..strip {
                 components.next();
@@ -93,31 +93,29 @@ fn extract_inner<T: Read>(ar: &mut Archive<T>, verbose: bool, strip: usize) -> R
                 {
                     let mut file = {
                         if let Some(parent) = path.parent() {
-                            try!(fs::create_dir_all(parent));
+                            fs::create_dir_all(parent)?;
                         }
-                        try!(
-                            fs::OpenOptions::new()
-                                .read(true)
-                                .write(true)
-                                .truncate(true)
-                                .create(true)
-                                .mode(entry.header().mode().unwrap_or(644))
-                                .open(&path)
-                        )
+                        fs::OpenOptions::new()
+                            .read(true)
+                            .write(true)
+                            .truncate(true)
+                            .create(true)
+                            .mode(entry.header().mode().unwrap_or(644))
+                            .open(&path)?
                     };
-                    try!(copy(&mut entry, &mut file));
+                    copy(&mut entry, &mut file)?;
                 }
                 if let Ok(mtime) = entry.header().mtime() {
                     let mtime = FileTime::from_seconds_since_1970(mtime, 0);
-                    try!(filetime::set_file_times(&path, mtime, mtime));
+                    filetime::set_file_times(&path, mtime, mtime)?;
                 }
             },
             EntryType::Directory => {
-                try!(fs::create_dir_all(&path));
+                fs::create_dir_all(&path)?;
             },
             EntryType::Symlink => {
                 if let Some(target) = entry.link_name().expect(&format!("Can't parse symlink target for: {:?}", path)) {
-                    try!(create_symlink(path, &target))
+                    create_symlink(path, &target)?
                 }
             },
             other => {

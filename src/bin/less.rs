@@ -66,12 +66,21 @@ fn main() {
     };
 
     while let Some(filename) = args.next() {
-        let mut file = File::open(Path::new(filename.as_str())).try(&mut stderr);
-        run(filename.as_str(), &mut file, &mut stdin, io::stdout()).try(&mut stderr);
+        let file = File::open(Path::new(filename.as_str()));
+        match file {
+            Ok(mut open_file) => {
+                if let Err(err) = run(filename.as_str(), &mut open_file, &mut stdin, io::stdout()) {
+                    eprintln!("{}: {}", filename, err);
+                }
+            }
+            Err(err) => {
+                eprintln!("{}: {}", filename, err);
+            }
+        }
     }
 }
 
-fn run<W: IntoRawMode>(path: &str, file: &mut Read, controls: &mut Read, stdout: W) -> std::io::Result<()> {
+fn run<W: IntoRawMode>(path: &str, file: &mut dyn Read, controls: &mut dyn Read, stdout: W) -> std::io::Result<()> {
     let mut string = String::new();
     file.read_to_string(&mut string)?;
 

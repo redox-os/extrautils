@@ -9,7 +9,7 @@ use termion::raw::IntoRawMode;
 fn main() {
     let mut stderr = io::stderr();
 
-    let mut terminal = termion::get_tty().try(&mut stderr);
+    let terminal = termion::get_tty().try(&mut stderr);
     let mut terminal = terminal.into_raw_mode().try(&mut stderr);
 
     write!(terminal, "{}", cursor::Save).unwrap();

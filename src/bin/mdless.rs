@@ -83,9 +83,19 @@ fn main() {
         run(PathBuf::from("-"), &mut stdin, &mut terminal, &mut stdout).try(&mut stderr);
     };
 
-    while let Some(filename) = args.next().map(|x| PathBuf::from(x)) {
-        let mut file = File::open(&filename).try(&mut stderr);
-        run(filename, &mut file, &mut stdin, &mut stdout).try(&mut stderr);
+    while let Some(filename) = args.next() {
+        let filepath = PathBuf::from(filename.as_str());
+        let file = File::open(&filepath);
+        match file {
+            Ok(mut open_file) => {
+                if let Err(err) = run(filepath, &mut open_file, &mut stdin, &mut io::stdout()) {
+                    eprintln!("{}: {}", &filename, err);
+                }
+            }
+            Err(err) => {
+                eprintln!("{}: {}", &filename, err);
+            }
+        }
     }
 }
 
@@ -274,7 +284,7 @@ impl Buffer {
         }
     }
 
-    fn read(&mut self, from: &mut Read) -> std::io::Result<usize> {
+    fn read(&mut self, from: &mut dyn Read) -> std::io::Result<usize> {
         let mut tmp = String::new();
         let res = from.read_to_string(&mut tmp)?;
 
@@ -333,7 +343,7 @@ impl Buffer {
     }
 }
 
-fn run<W: IntoRawMode>(mut path: PathBuf, file: &mut Read, controls: &mut Read, stdout: &mut W) -> std::io::Result<()> {
+fn run<W: IntoRawMode>(mut path: PathBuf, file: &mut dyn Read, controls: &mut dyn Read, stdout: &mut W) -> std::io::Result<()> {
     let mut stdout = stdout.into_raw_mode()?;
 
     let (w, h) = {

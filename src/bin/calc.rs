@@ -146,18 +146,18 @@ fn consume_until_new_token(input: &[char]) -> String {
 
 // Addition and subtraction
 pub fn e_expr(token_list: &[Token]) -> Result<IntermediateResult, ParseError> {
-    let mut t1 = try!(t_expr(token_list));
+    let mut t1 = t_expr(token_list)?;
     let mut index = t1.tokens_read;
 
     while index < token_list.len() {
         match token_list[index] {
             Token::Plus => {
-                let t2 = try!(t_expr(&token_list[index+1..]));
+                let t2 = t_expr(&token_list[index+1..])?;
                 t1.value += t2.value;
                 t1.tokens_read += t2.tokens_read + 1;
             }
             Token::Minus => {
-                let t2 = try!(t_expr(&token_list[index+1..]));
+                let t2 = t_expr(&token_list[index+1..])?;
                 t1.value -= t2.value;
                 t1.tokens_read += t2.tokens_read + 1;
             }
@@ -171,18 +171,18 @@ pub fn e_expr(token_list: &[Token]) -> Result<IntermediateResult, ParseError> {
 
 // Multiplication and division
 pub fn t_expr(token_list: &[Token]) -> Result<IntermediateResult, ParseError> {
-    let mut f1 = try!(f_expr(token_list));
+    let mut f1 = f_expr(token_list)?;
     let mut index = f1.tokens_read;
 
     while index < token_list.len() {
         match token_list[index] {
             Token::Multiply => {
-                let f2 = try!(f_expr(&token_list[index+1..]));
+                let f2 = f_expr(&token_list[index+1..])?;
                 f1.value *= f2.value;
                 f1.tokens_read += f2.tokens_read + 1;
             }
             Token::Divide => {
-                let f2 = try!(f_expr(&token_list[index+1..]));
+                let f2 = f_expr(&token_list[index+1..])?;
                 if f2.value == 0.0 {
                     return Err(ParseError::OtherError("Divide by zero error".to_owned()));
                 } else {
@@ -200,13 +200,13 @@ pub fn t_expr(token_list: &[Token]) -> Result<IntermediateResult, ParseError> {
 
 // Exponentiation
 pub fn f_expr(token_list: &[Token]) -> Result<IntermediateResult, ParseError> {
-    let mut g1 = try!(g_expr(token_list));
+    let mut g1 = g_expr(token_list)?;
     let mut index = g1.tokens_read;
     let token_len = token_list.len();
     while index < token_len {
         match token_list[index] {
             Token::Exponent => {
-                let f = try!(f_expr(&token_list[index+1..]));
+                let f = f_expr(&token_list[index+1..])?;
                 g1.value = g1.value.powf(f.value);
                 g1.tokens_read += f.tokens_read + 1;
             }
