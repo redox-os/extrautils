@@ -89,4 +89,4 @@ bzip2 = "0.3"
 zip = "0.3"
 
 [target.'cfg(target_arch = "x86_64")'.dependencies]
-raw-cpuid = "2.0"
+raw-cpuid = "8.1"
