@@ -44,7 +44,7 @@ fn main() {
         match arg.as_str() {
             "--help" | "-h" => {
                 // Print help.
-                stdout().write(MAN_PAGE.as_bytes()).unwrap();
+                eprint!("{}", MAN_PAGE);
                 return;
             },
             page => {
@@ -52,7 +52,7 @@ fn main() {
             }
         }
     } else {
-        stderr().write(b"Which manual page do you want?\n").unwrap();
+        eprintln!("Which manual page do you want?");
         process::exit(1);
     }
 }

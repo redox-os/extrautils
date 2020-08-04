@@ -73,11 +73,11 @@ fn main() {
                     if let Ok(interval_num) = interval_str.parse::<u64>() {
                         interval = cmp::max(1, interval_num);
                     } else {
-                        stderr.write(b"watch: interval argument not specified").unwrap();
+                        eprintln!("watch: interval argument not specified");
                         process::exit(1);
                     }
                 } else {
-                    stderr.write(b"watch: interval argument not specified").unwrap();
+                    eprintln!("watch: interval argument not specified");
                     process::exit(1);
                 }
             },
@@ -91,7 +91,7 @@ fn main() {
     }
 
     if command.is_empty() {
-        stderr.write(b"watch: command argument not specified").unwrap();
+        eprintln!("watch: command argument not specified");
         process::exit(1);
     }
 

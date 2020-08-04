@@ -43,9 +43,7 @@ fn main() {
     if let Some(arg) = env::args().nth(1) {
         match arg.as_str() {
             "--help" | "-h" => {
-                // Print help.
-                stdout().write(MAN_PAGE.as_bytes()).unwrap();
-                return;
+                print!("{}", MAN_PAGE);
             },
             page => {
                 Command::new("mdless").arg(&("/info/".to_owned() + page)).spawn().unwrap().wait().unwrap();

@@ -55,9 +55,6 @@ impl Flags {
 
 fn main() {
     let args = env::args().skip(1);
-    let stdout = io::stdout();
-    let mut stdout = stdout.lock();
-    let mut stderr = io::stderr();
     let stdin = io::stdin();
     let stdin = stdin.lock();
 
@@ -68,16 +65,13 @@ fn main() {
         if arg.starts_with("-") {
             match arg.as_str() {
                 "-h" | "--help" => {
-                    stdout.writeln(MAN_PAGE.as_bytes()).try(&mut stderr);
+                    print!("{}", MAN_PAGE);
                 },
                 "-n" | "--line-number" => flags.line_numbers = true,
                 "-v" | "--invert-match" => flags.invert_match = true,
                 "-c" | "--count" => flags.count = true,
                 _ => {
-                    stderr.write(b"Unknown option: ").try(&mut stderr);
-                    stderr.write(arg.as_bytes()).try(&mut stderr);
-                    stderr.write(b"\n").try(&mut stderr);
-                    let _ = stderr.flush();
+                    eprintln!("Error, unknown option: {}", arg);
                     exit(1);
                 }
             }
@@ -86,13 +80,8 @@ fn main() {
         } else {
             match File::open(&Path::new(&arg)) {
                 Ok(f) => files.push(f),
-                Err(e) => {
-                    stderr.write(b"Error opening ").try(&mut stderr);
-                    stderr.write(arg.as_bytes()).try(&mut stderr);
-                    stderr.write(b": ").try(&mut stderr);
-                    stderr.write(e.description().as_bytes()).try(&mut stderr);
-                    stderr.write(b"\n").try(&mut stderr);
-                    let _ = stderr.flush();
+                Err(err) => {
+                    eprintln!("Error opening {}: {}", arg, err);
                     exit(1);
                 }
             }
@@ -100,20 +89,20 @@ fn main() {
     }
 
     if pattern.is_empty() {
-        stderr.write_all(b"You must provide a pattern\n").try(&mut stderr);
+        eprintln!("You must provide a pattern");
         exit(1);
     }
 
     if files.is_empty() {
-        do_simple_search(BufReader::new(stdin), &pattern, &mut stdout, &mut stderr, flags);
+        do_simple_search(BufReader::new(stdin), &pattern, flags);
     } else {
         for f in files {
-            do_simple_search(BufReader::new(f), &pattern, &mut stdout, &mut stderr, flags);
+            do_simple_search(BufReader::new(f), &pattern, flags);
         }
     }
 }
 
-fn do_simple_search<T: BufRead, O: Write + WriteExt>(reader: T, pattern: &str, out: &mut O, stderr: &mut Stderr, flags: Flags) {
+fn do_simple_search<T: BufRead>(reader: T, pattern: &str, flags: Flags) {
     let mut line_num = 0;
     let mut count = 0;
     for result in reader.lines() {
@@ -128,9 +117,9 @@ fn do_simple_search<T: BufRead, O: Write + WriteExt>(reader: T, pattern: &str, o
                 count += 1;
             } else if is_match {
                 if flags.line_numbers {
-                    out.write_all((line_num.to_string() + ": ").as_bytes()).try(stderr);
+                    print!("{}: ", line_num + 1);
                 }
-                out.writeln(line.as_bytes()).try(stderr);
+                println!("{}", line);
             }
         }
     }

@@ -106,13 +106,11 @@ fn main() {
 
         match arg.as_str() {
             "--help" => {
-                // Print help.
-                stdout.write(MAN_PAGE.as_bytes()).try(&mut stderr);
+                print!("{}", MAN_PAGE);
                 return;
             },
             "-h" => {
-                // Print help.
-                stdout.write(SHORT_HELP.as_bytes()).try(&mut stderr);
+                print!("{}", SHORT_HELP);
                 return;
             },
             "-n" | "--len" => len = args.next().fail("no number after -n.", &mut stderr).parse().try(&mut stderr),
@@ -120,9 +118,7 @@ fn main() {
             t => {
                 // Find number input.
                 let num: u64 = args.next().unwrap_or_else(|| {
-                    stderr.write(b"error: incorrectly formatted number. \
-                                   Please input a positive integer.\n").try(&mut stderr);
-                    stderr.flush().try(&mut stderr);
+                    eprintln!("error: incorrectly formatted number.  Please input a positive integer.");
                     exit(1);
                 }).parse().try(&mut stderr);
                 ms += num * match t {
@@ -132,10 +128,7 @@ fn main() {
                     "-M" | "--milliseconds" => 1,
                     _ => {
                         // Unknown argument.
-                        stderr.write(b"error: unknown argument, ").try(&mut stderr);
-                        stderr.write(t.as_bytes()).try(&mut stderr);
-                        stderr.write(b".\n").try(&mut stderr);
-                        stderr.flush().try(&mut stderr);
+                        eprintln!("Error: unknown argument, {}", t);
                         exit(1);
                     },
 
@@ -146,23 +139,23 @@ fn main() {
 
     // Default to help page.
     if ms == 0 {
-        stdout.write(SHORT_HELP.as_bytes()).try(&mut stderr);
+        print!("{}", SHORT_HELP);
         return;
     }
 
     // Hide the cursor.
-    stdout.write(b"\x1b[?25l").try(&mut stderr);
+    print!("\x1b[?25l");
     // Draw the empty progress bar.
     for _ in 0..len + 1 {
-        stdout.write(b" ").try(&mut stderr);
+        print!(" ");
     }
-    stdout.write(b"]").try(&mut stderr);
+    print!("]");
 
-    stdout.write(b"\r[").try(&mut stderr);
+    print!("\r[");
 
     // As time goes, update the progress bar.
     for _ in 0..len {
-        stdout.write(b"#").try(&mut stderr);
+        print!("#");
         stdout.flush().try(&mut stderr);
         // Sleep.
         sleep(Duration::from_millis(ms / len));
@@ -173,18 +166,16 @@ fn main() {
         // This will print a blinking red banner.
         for _ in 0..13 {
             // Set drawing mode to red background.
-            stdout.write(b"\x1b[41m").try(&mut stderr);
             // Clear the current line, rendering the background red.
-            stdout.write(b"\x1b[2K").try(&mut stderr);
+            print!("\x1b[41m\x1b[2K");
             // Flush.
             stdout.flush().try(&mut stderr);
             // Sleep.
             sleep(Duration::from_millis(200));
 
             // Clear the drawing mode.
-            stdout.write(b"\x1b[0m").try(&mut stderr);
             // Clear the background.
-            stdout.write(b"\x1b[2K").try(&mut stderr);
+            print!("\x1b[0m\x1b[2K");
             // Flush.
             stdout.flush().try(&mut stderr);
             sleep(Duration::from_millis(200));
@@ -194,6 +185,5 @@ fn main() {
     }
 
     // Show the cursor again.
-    stdout.write(b"\x1b[?25h").try(&mut stderr);
-    stdout.write(b"\n").try(&mut stderr);
+    println!("\x1b[?25h");
 }

@@ -4,7 +4,7 @@ extern crate termion;
 
 use std::env::args;
 use std::fs::File;
-use std::io::{self, Write, Read};
+use std::io::{self, Read};
 use std::path::Path;
 
 use extra::option::OptionalExt;
@@ -57,7 +57,7 @@ fn main() {
     if let Some(x) = args.peek() {
         if x == "--help" || x == "-h" {
             // Print help.
-            io::stdout().write(MAN_PAGE.as_bytes()).try(&mut stderr);
+            print!("{}", MAN_PAGE);
             return;
         }
     } else {

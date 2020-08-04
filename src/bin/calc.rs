@@ -357,9 +357,8 @@ fn main() {
         let input: Vec<String> = args.skip(1).collect();
         stdout.writeln(eval(&input.join("")).as_bytes()).try(&mut stderr);
     } else {
-        let prompt = "[]> ".as_bytes();
         loop {
-            stdout.write(prompt).try(&mut stderr);
+            print!("[]> ");
             stdout.flush().try(&mut stderr);
             let mut input = String::new();
             io::stdin().read_line(&mut input)

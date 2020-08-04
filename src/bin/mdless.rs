@@ -75,7 +75,7 @@ fn main() {
     if let Some(x) = args.peek() {
         if x == "--help" || x == "-h" {
             // Print help.
-            stdout.write(MAN_PAGE.as_bytes()).try(&mut stderr);
+            print!("{}", MAN_PAGE);
             return;
         }
     } else {

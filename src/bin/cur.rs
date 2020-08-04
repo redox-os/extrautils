@@ -66,7 +66,7 @@ fn main() {
         match i.as_str() {
             // Print the help page.
             "-h" | "--help" => {
-                stdout.write(MAN_PAGE.as_bytes()).try(&mut stderr);
+                print!("{}", MAN_PAGE);
             },
             // This argument is unknown.
             _ => fail("unknown argument.", &mut stderr),

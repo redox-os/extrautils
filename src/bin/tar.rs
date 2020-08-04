@@ -159,31 +159,31 @@ fn main() {
         match op.as_str() {
             "c" => if let Some(input) = args.next() {
                 if let Err(err) = create(&input, "-") {
-                    write!(stderr(), "tar: create: failed: {}\n", err).unwrap();
+                    eprintln!("tar: create: failed: {}", err);
                     process::exit(1);
                 }
             } else {
-                write!(stderr(), "tar: create: no input specified: {}\n", op).unwrap();
+                eprintln!("tar: create: no input specified: {}", op);
                 process::exit(1);
             },
             "cf" => if let Some(tar) = args.next() {
                 if let Some(input) = args.next() {
                     if let Err(err) = create(&input, &tar) {
-                        write!(stderr(), "tar: create: failed: {}\n", err).unwrap();
+                        eprintln!("tar: create: failed: {}", err);
                         process::exit(1);
                     }
                 } else {
-                    write!(stderr(), "tar: create: no input specified: {}\n", op).unwrap();
+                    eprintln!("tar: create: no input specified: {}", op);
                     process::exit(1);
                 }
             } else {
-                write!(stderr(), "tar: create: no tarfile specified: {}\n", op).unwrap();
+                eprintln!("tar: create: no tarfile specified: {}", op);
                 process::exit(1);
             },
             "t" | "tf" => {
                 let tar = args.next().unwrap_or("-".to_string());
                 if let Err(err) = list(&tar) {
-                    write!(stderr(), "tar: list: failed: {}\n", err).unwrap();
+                    eprintln!("tar: list: failed: {}", err);
                     process::exit(1);
                 }
             },
@@ -210,19 +210,19 @@ fn main() {
 
                 let verbose = op.contains('v');
                 if let Err(err) = extract(&tar, verbose, strip) {
-                    write!(stderr(), "tar: extract: failed: {}\n", err).unwrap();
+                    eprintln!("tar: extract: failed: {}", err);
                     process::exit(1);
                 }
             },
             _ => {
-                write!(stderr(), "tar: {}: unknown operation\n", op).unwrap();
-                write!(stderr(), "tar: need to specify c[f] (create), t[f] (list), or x[f] (extract)\n").unwrap();
+                eprintln!("tar: {}: unknown operation\n", op);
+                eprintln!("tar: need to specify c[f] (create), t[f] (list), or x[f] (extract)");
                 process::exit(1);
             }
         }
     } else {
-        write!(stderr(), "tar: no operation\n").unwrap();
-        write!(stderr(), "tar: need to specify cf (create), tf (list), or xf (extract)\n").unwrap();
+        eprintln!("tar: no operation");
+        eprintln!("tar: need to specify cf (create), tf (list), or xf (extract)");
         process::exit(1);
     }
 }

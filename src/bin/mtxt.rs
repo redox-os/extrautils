@@ -72,9 +72,6 @@ COPYRIGHT
 fn main() {
     let stdin = io::stdin();
     let stdin = stdin.lock();
-    let stdout = io::stdout();
-    let mut stdout = stdout.lock();
-    let mut stderr = io::stderr();
 
     // These are the options.
     let mut to_uppercase = false;
@@ -87,15 +84,10 @@ fn main() {
             "-l" | "--to-lowercase" => to_lowercase = true,
             "-a" | "--strip-non-ascii" => strip_non_ascii = true,
             "-h" | "--help" => {
-                // The help page.
-                stdout.write(MAN_PAGE.as_bytes()).try(&mut stderr);
+                print!("{}", MAN_PAGE);
             },
             a => {
-                // The argument, a, is unknown.
-                stderr.write(b"error: unknown argument, ").try(&mut stderr);
-                stderr.write(a.as_bytes()).try(&mut stderr);
-                stderr.write(b".\n").try(&mut stderr);
-                stderr.flush().try(&mut stderr);
+                eprintln!("Error: unknown argument: {}", a);
                 exit(1);
             }
         }
@@ -124,7 +116,7 @@ fn main() {
                         }
                     }
                 }
-                println!("");
+                println!();
             }
         }
     }
