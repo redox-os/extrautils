@@ -9,7 +9,7 @@ use std::process::exit;
 use extra::option::OptionalExt;
 use extra::io::{fail};
 
-static MAN_PAGE: &'static str = /* @MANSTART{mtxt} */ r#"
+static MAN_PAGE: &str = /* @MANSTART{mtxt} */ r#"
 NAME
     mtxt - a simple tool to manipulate text from standard input.
 

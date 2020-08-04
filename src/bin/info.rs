@@ -2,7 +2,7 @@ use std::env;
 use std::io::{stdout, Write};
 use std::process::Command;
 
-static MAN_PAGE: &'static str = /* @MANSTART{info} */ r#"
+static MAN_PAGE: &str = /* @MANSTART{info} */ r#"
 NAME
     info - view an info page.
 

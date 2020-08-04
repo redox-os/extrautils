@@ -16,7 +16,7 @@ use termion::event::Key;
 use termion::input::TermRead;
 use termion::raw::{IntoRawMode, RawTerminal};
 
-static MAN_PAGE: &'static str = /* @MANSTART{mdless} */ r#"
+static MAN_PAGE: &str = /* @MANSTART{mdless} */ r#"
 NAME
     mdless- view a markdown file.
 

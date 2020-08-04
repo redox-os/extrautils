@@ -8,7 +8,7 @@ use std::process::exit;
 use extra::option::OptionalExt;
 use extra::io::WriteExt;
 
-static MAN_PAGE: &'static str = /* @MANSTART{keymap} */ r#"
+static MAN_PAGE: &str = /* @MANSTART{keymap} */ r#"
 NAME
     keymap - change the keymap
 

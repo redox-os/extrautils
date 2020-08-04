@@ -6,7 +6,7 @@ use std::process::{Command, exit};
 
 use extra::option::OptionalExt;
 
-const MAN_PAGE: &'static str = /* @MANSTART{dmesg} */ r#"
+const MAN_PAGE: &str = /* @MANSTART{dmesg} */ r#"
 NAME
     dmesg - display the system message buffer
 

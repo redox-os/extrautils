@@ -11,7 +11,7 @@ use std::process::exit;
 use extra::option::OptionalExt;
 use extra::io::WriteExt;
 
-static MAN_PAGE: &'static str = /* @MANSTART{grep} */ r#"
+static MAN_PAGE: &str = /* @MANSTART{grep} */ r#"
 NAME
     grep - print lines matching a pattern
 

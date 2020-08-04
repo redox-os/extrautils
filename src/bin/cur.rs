@@ -6,7 +6,7 @@ use std::io::{self, Write, Read};
 use extra::option::OptionalExt;
 use extra::io::fail;
 
-static MAN_PAGE: &'static str = /* @MANSTART{cur} */ r#"
+static MAN_PAGE: &str = /* @MANSTART{cur} */ r#"
 NAME
     cur - freely move you cursor using H, J, K, and L (Vi-bindings).
 

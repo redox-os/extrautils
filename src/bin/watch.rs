@@ -14,7 +14,7 @@ use extra::option::OptionalExt;
 use termion::{async_stdin, clear, cursor, style, terminal_size};
 use termion::raw::IntoRawMode;
 
-static MAN_PAGE: &'static str = /* @MANSTART{watch} */ r#"
+static MAN_PAGE: &str = /* @MANSTART{watch} */ r#"
 NAME
     watch - execute a program periodically, showing output fullscreen
 

@@ -8,7 +8,7 @@ use std::time::Duration;
 
 use extra::option::OptionalExt;
 
-static MAN_PAGE: &'static str = /* @MANSTART{rem} */ r#"
+static MAN_PAGE: &str = /* @MANSTART{rem} */ r#"
 NAME
     rem - set a count-down.
 
@@ -74,7 +74,7 @@ COPYRIGHT
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 "#; /* @MANEND */
 
-static SHORT_HELP: &'static str = r#"
+static SHORT_HELP: &str = r#"
     rem - set a count-down.
 
     Options (use --help for extended list):

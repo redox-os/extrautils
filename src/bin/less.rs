@@ -10,7 +10,7 @@ use std::path::Path;
 use extra::option::OptionalExt;
 use termion::raw::IntoRawMode;
 
-static MAN_PAGE: &'static str = /* @MANSTART{less} */ r#"
+static MAN_PAGE: &str = /* @MANSTART{less} */ r#"
 NAME
     less - view a text file.
 
