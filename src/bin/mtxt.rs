@@ -90,8 +90,8 @@ fn main() {
     }
 
     if to_lowercase && to_uppercase {
-        // Fail, since -u and -l are incompatible.
-        fail("-u and -l are incompatible. Aborting.", &mut stderr);
+        eprintln!("-u and -l are incompatible. Aborting.");
+        exit(1);
     }
 
     for u8_line in stdin.lines() {
