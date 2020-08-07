@@ -66,9 +66,9 @@ fn main() {
             let mut buf: [u8; 4096] = [0; 4096];
             if let Ok(count) = syscall::fpath(display, &mut buf) {
                 let path = unsafe { String::from_utf8_unchecked(Vec::from(&buf[..count])) };
-                let res = path.split(":").nth(1).unwrap_or("");
-                width = res.split("/").nth(1).unwrap_or("").parse::<i32>().unwrap_or(0);
-                height = res.split("/").nth(2).unwrap_or("").parse::<i32>().unwrap_or(0);
+                let res = path.split(':').nth(1).unwrap_or("");
+                width = res.split('/').nth(1).unwrap_or("").parse::<i32>().unwrap_or(0);
+                height = res.split('/').nth(2).unwrap_or("").parse::<i32>().unwrap_or(0);
             }
             let _ = syscall::close(display);
         }

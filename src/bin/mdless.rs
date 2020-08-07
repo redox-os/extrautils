@@ -290,7 +290,7 @@ impl Buffer {
 
         self.lines.append(&mut tmp
             .as_str()
-            .split("\n")
+            .split('\n')
             .map(|x| { Block::parse(&mut x.chars()) })
             .collect());
 

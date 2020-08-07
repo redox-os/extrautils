@@ -35,7 +35,7 @@ fn main() {
             exit(1);
         }
     };
-    let path = if arg.starts_with("-") {
+    let path = if arg.starts_with('-') {
         match arg.as_str() {
             "-h" | "--help" => {
                 print!("{}", MAN_PAGE);

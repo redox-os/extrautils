@@ -58,7 +58,7 @@ fn main() {
     let mut pattern = String::new();
     let mut files = Vec::with_capacity(args.len());
     for arg in args {
-        if arg.starts_with("-") {
+        if arg.starts_with('-') {
             match arg.as_str() {
                 "-h" | "--help" => {
                     print!("{}", MAN_PAGE);
