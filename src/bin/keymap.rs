@@ -1,12 +1,9 @@
 extern crate extra;
 
-use std::{io, str, env};
+use std::{str, env};
 use std::io::Write;
 use std::fs::File;
 use std::process::exit;
-
-use extra::option::OptionalExt;
-use extra::io::WriteExt;
 
 static MAN_PAGE: &str = /* @MANSTART{keymap} */ r#"
 NAME

@@ -6,7 +6,7 @@ extern crate filetime;
 extern crate bzip2;
 
 use std::{env, process};
-use std::io::{stdin, stdout, stderr, copy, Error, ErrorKind, Result, Read, Write, BufReader};
+use std::io::{stdin, stdout, copy, Error, ErrorKind, Result, Read, Write, BufReader};
 use std::fs::{self, File};
 use std::os::unix::fs::{OpenOptionsExt, symlink};
 use std::path::{Path, PathBuf};

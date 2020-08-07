@@ -3,7 +3,6 @@ extern crate extra;
 use std::env::args;
 use std::io::{self, Write, Read};
 
-use extra::option::OptionalExt;
 use extra::io::fail;
 
 static MAN_PAGE: &str = /* @MANSTART{cur} */ r#"

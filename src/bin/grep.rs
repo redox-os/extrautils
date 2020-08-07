@@ -1,15 +1,11 @@
 extern crate extra;
 
 use std::io;
-use std::io::{Write, BufRead, BufReader, Stderr};
+use std::io::{BufRead, BufReader};
 use std::env;
 use std::fs::File;
 use std::path::Path;
-use std::error::Error;
 use std::process::exit;
-
-use extra::option::OptionalExt;
-use extra::io::WriteExt;
 
 static MAN_PAGE: &str = /* @MANSTART{grep} */ r#"
 NAME

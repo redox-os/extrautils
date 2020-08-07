@@ -1,13 +1,9 @@
-
 extern crate extra;
 
 use std::env::args;
-use std::io::{self, Write};
+use std::io::{self};
 use std::io::BufRead;
 use std::process::exit;
-
-use extra::option::OptionalExt;
-use extra::io::{fail};
 
 static MAN_PAGE: &str = /* @MANSTART{mtxt} */ r#"
 NAME

@@ -1,5 +1,4 @@
 use std::env;
-use std::io::{stdout, stderr, Write};
 use std::process::{self, Command};
 
 static MAN_PAGE: &str = /* @MANSTART{man} */ r#"
