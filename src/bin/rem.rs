@@ -97,12 +97,7 @@ fn main() {
     let mut blink = false;
 
     // Loop over the arguments.
-    loop {
-        let arg = if let Some(x) = args.next() {
-            x
-        } else {
-            break;
-        };
+    while let Some(arg) = args.next() {
 
         match arg.as_str() {
             "--help" => {
@@ -127,7 +122,6 @@ fn main() {
                     "-s" | "--seconds" => 1000,
                     "-M" | "--milliseconds" => 1,
                     _ => {
-                        // Unknown argument.
                         eprintln!("Error: unknown argument, {}", t);
                         exit(1);
                     },
@@ -149,9 +143,7 @@ fn main() {
     for _ in 0..len + 1 {
         print!(" ");
     }
-    print!("]");
-
-    print!("\r[");
+    print!("]\r[");
 
     // As time goes, update the progress bar.
     for _ in 0..len {
@@ -165,22 +157,20 @@ fn main() {
     if blink {
         // This will print a blinking red banner.
         for _ in 0..13 {
-            // Set drawing mode to red background.
-            // Clear the current line, rendering the background red.
-            print!("\x1b[41m\x1b[2K");
-            // Flush.
-            stdout.flush().try(&mut stderr);
-            // Sleep.
-            sleep(Duration::from_millis(200));
-
-            // Clear the drawing mode.
-            // Clear the background.
-            print!("\x1b[0m\x1b[2K");
-            // Flush.
+            print!("\x1b[41m\x1b[2K\r"); // Clear the current line, rendering the background red.
+            for _ in 0..len + 2 {
+                print!(" ");
+            }
             stdout.flush().try(&mut stderr);
             sleep(Duration::from_millis(200));
 
-            // Repeat...
+            print!("\x1b[0m\x1b[2K\r"); // Clear the drawing mode and background.
+            for _ in 0..len + 2 {
+                print!(" ");
+            }
+
+            stdout.flush().try(&mut stderr);
+            sleep(Duration::from_millis(200));
         }
     }
 
