@@ -102,7 +102,7 @@ fn main() {
             },
             Ok(line) => {
                 for c in line.chars() {
-                    if !strip_non_ascii || strip_non_ascii && c.is_ascii() {
+                    if !strip_non_ascii || c.is_ascii() {
                         if to_uppercase {
                             print!("{}", c.to_uppercase().to_string());
                         } else if to_lowercase {

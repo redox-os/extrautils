@@ -225,11 +225,7 @@ impl Block {
                 write!(to, "{}", color::Bg(color::Reset))?;
             },
             Block::Link(ref blocks, ref link) => {
-                let highlight = if next.len() == next_i {
-                    true
-                } else {
-                    false
-                };
+                let highlight = next.len() == next_i;
 
                 if link.starts_with('/') {
                     next.push(PathBuf::from(link));
