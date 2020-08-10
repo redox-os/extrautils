@@ -83,7 +83,7 @@ fn main() {
         run(PathBuf::from("-"), &mut stdin, &mut terminal, &mut stdout).try(&mut stderr);
     };
 
-    while let Some(filename) = args.next() {
+    for filename in args {
         let filepath = PathBuf::from(filename.as_str());
         let file = File::open(&filepath);
         match file {
@@ -113,7 +113,7 @@ impl Block {
         let mut blocks = Vec::new();
 
         while let Some(c) = s.next() {
-            if c == '*' && s.as_str().chars().next() == Some('*') {
+            if c == '*' && s.as_str().starts_with('*') {
                 let _ = s.next();
                 break;
             } else {
@@ -127,7 +127,7 @@ impl Block {
     fn parse_italic(s: &mut Chars) -> Block {
         let mut blocks = Vec::new();
 
-        while let Some(c) = s.next() {
+        for c in s {
             if c == '*' {
                 break;
             } else {
@@ -141,7 +141,7 @@ impl Block {
     fn parse_code(s: &mut Chars) -> Block {
         let mut blocks = Vec::new();
 
-        while let Some(c) = s.next() {
+        for c in s {
             if c == '`' {
                 break;
             } else {
@@ -152,6 +152,7 @@ impl Block {
         Block::Code(blocks)
     }
 
+    #[allow(clippy::while_let_on_iterator)]
     fn parse_link(s: &mut Chars) -> Block {
         let mut blocks = Vec::new();
         let mut link = String::new();
@@ -163,7 +164,7 @@ impl Block {
             }
         }
 
-        if s.as_str().chars().next() == Some('(') {
+        if s.as_str().starts_with('(') {
             while let Some(c) = s.next() {
                 match c {
                     '(' => (),
@@ -181,7 +182,7 @@ impl Block {
 
         while let Some(c) = s.next() {
             match c {
-                '*' => if s.as_str().chars().next() == Some('*') {
+                '*' => if s.as_str().starts_with('*') {
                     let _ = s.next();
                     blocks.push(Block::parse_bold(s));
                 } else {
@@ -293,6 +294,7 @@ impl Buffer {
         Ok(res)
     }
 
+    #[allow(clippy::explicit_counter_loop)]
     fn draw<W: IntoRawMode>(&self, to: &mut RawTerminal<W>, path: &PathBuf, next: &mut Vec<PathBuf>, next_i: usize, w: u16, h: u16) -> std::io::Result<usize> {
         write!(to, "{}{}{}", clear::All, style::Reset, cursor::Goto(1, 1))?;
 
