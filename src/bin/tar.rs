@@ -66,7 +66,7 @@ fn list(tar: &str) -> Result<()> {
 fn create_symlink(link: PathBuf, target: &Path) -> Result<()> {
     //delete existing file to make way for symlink
     if link.exists() {
-        fs::remove_file(link.clone()).expect(&format!("could not overwrite: {:?}", link));
+        fs::remove_file(link.clone()).unwrap_or_else(|_| panic!("could not overwrite: {:?}", link));
     }
     symlink(target, link)
 }
@@ -114,7 +114,7 @@ fn extract_inner<T: Read>(ar: &mut Archive<T>, verbose: bool, strip: usize) -> R
                 fs::create_dir_all(&path)?;
             },
             EntryType::Symlink => {
-                if let Some(target) = entry.link_name().expect(&format!("Can't parse symlink target for: {:?}", path)) {
+                if let Some(target) = entry.link_name().unwrap_or_else(|_| panic!("Can't parse symlink target for: {:?}", path)) {
                     create_symlink(path, &target)?
                 }
             },
@@ -181,7 +181,7 @@ fn main() {
                 process::exit(1);
             },
             "t" | "tf" => {
-                let tar = args.next().unwrap_or("-".to_string());
+                let tar = args.next().unwrap_or_else(|| "-".to_string());
                 if let Err(err) = list(&tar) {
                     eprintln!("tar: list: failed: {}", err);
                     process::exit(1);
@@ -192,7 +192,7 @@ fn main() {
                 let mut strip = 0;
                 while let Some(arg) = args.next() {
                     if arg == "-C" || arg == "--directory" {
-                        env::set_current_dir(args.next().expect(&format!("{} requires path", arg))).unwrap();
+                        env::set_current_dir(args.next().unwrap_or_else(|| panic!("{} requires path", arg))).unwrap();
                     } else if arg.starts_with("--directory=") {
                         env::set_current_dir(&arg[12..]).unwrap();
                     } else if arg.starts_with("--strip-components") {
@@ -206,7 +206,7 @@ fn main() {
                         tar = Some(path);
                     }
                 }
-                let tar = tar.unwrap_or(PathBuf::from("-"));
+                let tar = tar.unwrap_or_else(|| PathBuf::from("-"));
 
                 let verbose = op.contains('v');
                 if let Err(err) = extract(&tar, verbose, strip) {
