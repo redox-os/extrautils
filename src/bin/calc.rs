@@ -20,14 +20,14 @@ pub enum Token {
 impl Token {
     pub fn to_str(&self) -> &'static str {
         match self {
-            &Token::Plus       => "Plus",
-            &Token::Minus      => "Minus",
-            &Token::Divide     => "Divide",
-            &Token::Multiply   => "Multiply",
-            &Token::Exponent   => "Exponent",
-            &Token::OpenParen  => "OpenParen",
-            &Token::CloseParen => "CloseParen",
-            &Token::Number(_)  => "Number",
+            Token::Plus       => "Plus",
+            Token::Minus      => "Minus",
+            Token::Divide     => "Divide",
+            Token::Multiply   => "Multiply",
+            Token::Exponent   => "Exponent",
+            Token::OpenParen  => "OpenParen",
+            Token::CloseParen => "CloseParen",
+            Token::Number(_)  => "Number",
         }
     }
 
@@ -54,8 +54,8 @@ pub struct IntermediateResult {
 impl IntermediateResult {
     fn new(value: f64, tokens_read: usize) -> Self {
         IntermediateResult {
-            value: value,
-            tokens_read: tokens_read,
+            value,
+            tokens_read,
         }
     }
 }
