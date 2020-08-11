@@ -55,9 +55,9 @@ fn main() {
 
     match File::open("display:keymap") {
         Ok(mut file) => {
-            match file.write(path.as_bytes()) {
-                Err(e) => println!("keymap: could not change keymap: {}", e),
-                _ => {}
+            if let Err(e) = file.write(path.as_bytes()) {
+                eprintln!("keymap: could not change keymap: {}", e);
+                exit(1);
             }
 
         },
