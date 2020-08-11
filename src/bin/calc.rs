@@ -4,6 +4,7 @@ use extra::io::{fail, WriteExt};
 
 use std::env::args;
 use std::io::{self, Write};
+use std::fmt;
 
 #[derive(Debug, Clone)]
 pub enum Token {
@@ -30,9 +31,11 @@ impl Token {
             Token::Number(_)  => "Number",
         }
     }
+}
 
-    pub fn to_string(&self) -> String {
-        self.to_str().to_owned()
+impl fmt::Display for Token {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.to_str())
     }
 }
 
