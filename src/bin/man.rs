@@ -1,5 +1,5 @@
 use std::env;
-use std::process::{self, Command};
+use std::process::{Command, exit};
 
 static MAN_PAGE: &str = /* @MANSTART{man} */ r#"
 NAME
@@ -44,7 +44,7 @@ fn main() {
             "--help" | "-h" => {
                 // Print help.
                 eprint!("{}", MAN_PAGE);
-                return;
+                exit(0);
             },
             page => {
                 Command::new("less").arg(&("/ref/".to_owned() + page)).spawn().unwrap().wait().unwrap();
@@ -52,6 +52,6 @@ fn main() {
         }
     } else {
         eprintln!("Which manual page do you want?");
-        process::exit(1);
+        exit(1);
     }
 }
