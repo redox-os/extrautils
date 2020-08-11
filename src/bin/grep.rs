@@ -102,14 +102,12 @@ fn do_simple_search<T: BufRead>(reader: T, pattern: &str, flags: Flags) {
     let mut count = 0;
     for (line_num, result) in reader.lines().enumerate() {
         if let Ok(line) = result {
-            let is_match = if flags.invert_match {
-                !line.contains(pattern)
-            } else {
-                line.contains(pattern)
-            };
-            if is_match && flags.count {
+            let mut is_match = line.contains(pattern);
+            if flags.invert_match {
+                is_match = !is_match
+            }
+            if is_match {
                 count += 1;
-            } else if is_match {
                 if flags.line_numbers {
                     print!("{}: ", line_num + 1);
                 }
