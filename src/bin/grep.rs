@@ -99,10 +99,8 @@ fn main() {
 }
 
 fn do_simple_search<T: BufRead>(reader: T, pattern: &str, flags: Flags) {
-    let mut line_num = 0;
     let mut count = 0;
-    for result in reader.lines() {
-        line_num += 1;
+    for (line_num, result) in reader.lines().enumerate() {
         if let Ok(line) = result {
             let is_match = if flags.invert_match {
                 !line.contains(pattern)
