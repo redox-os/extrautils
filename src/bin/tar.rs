@@ -66,7 +66,7 @@ fn list(tar: &str) -> Result<()> {
 fn create_symlink(link: PathBuf, target: &Path) -> Result<()> {
     //delete existing file to make way for symlink
     if link.exists() {
-        fs::remove_file(link.clone()).unwrap_or_else(|_| panic!("could not overwrite: {:?}", link));
+        fs::remove_file(link.clone()).unwrap_or_else(|e| panic!("could not overwrite: {:?}, {:?}", link, e));
     }
     symlink(target, link)
 }
@@ -114,7 +114,7 @@ fn extract_inner<T: Read>(ar: &mut Archive<T>, verbose: bool, strip: usize) -> R
                 fs::create_dir_all(&path)?;
             },
             EntryType::Symlink => {
-                if let Some(target) = entry.link_name().unwrap_or_else(|_| panic!("Can't parse symlink target for: {:?}", path)) {
+                if let Some(target) = entry.link_name().unwrap_or_else(|e| panic!("Can't parse symlink target for: {:?}, {:?}", path, e)) {
                     create_symlink(path, &target)?
                 }
             },
