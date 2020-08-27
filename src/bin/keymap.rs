@@ -1,14 +1,11 @@
 extern crate extra;
 
-use std::{io, str, env};
+use std::{str, env};
 use std::io::Write;
 use std::fs::File;
 use std::process::exit;
 
-use extra::option::OptionalExt;
-use extra::io::WriteExt;
-
-static MAN_PAGE: &'static str = /* @MANSTART{keymap} */ r#"
+static MAN_PAGE: &str = /* @MANSTART{keymap} */ r#"
 NAME
     keymap - change the keymap
 
@@ -30,31 +27,24 @@ OPTIONS
 
 fn main() {
     let mut args = env::args().skip(1);
-    let stdout = io::stdout();
-    let mut stdout = stdout.lock();
-    let mut stderr = io::stderr();
 
     let arg  = match args.next() {
         Some(arg) => arg,
         None => {
-            // TODO Write explanation
-            println!("Needs one argument.");
+            eprintln!("Must specify keymap name.");
             exit(1);
         }
     };
-    let path = if arg.starts_with("-") {
+    let path = if arg.starts_with('-') {
         match arg.as_str() {
             "-h" | "--help" => {
-                stdout.writeln(MAN_PAGE.as_bytes()).try(&mut stderr);
+                print!("{}", MAN_PAGE);
             },
             "-l" | "--list" => {
                 // TODO list keymaps
             },
             _ => {
-                stderr.write(b"Unknown option: ").try(&mut stderr);
-                stderr.write(arg.as_bytes()).try(&mut stderr);
-                stderr.write(b"\n").try(&mut stderr);
-                let _ = stderr.flush();
+                eprintln!("Unknown option: {}", arg);
                 exit(1);
             }
         }
@@ -65,14 +55,14 @@ fn main() {
 
     match File::open("display:keymap") {
         Ok(mut file) => {
-            match file.write(path.as_bytes()) {
-                Err(e) => println!("keymap: could not change keymap: {}", e),
-                _ => {}
+            if let Err(e) = file.write(path.as_bytes()) {
+                eprintln!("keymap: could not change keymap: {}", e);
+                exit(1);
             }
 
         },
         Err(err) => {
-            println!("keymap: failed to open display: {}", err);
+            eprintln!("keymap: failed to open display: {}", err);
             exit(1);
         }
     }

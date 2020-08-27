@@ -4,13 +4,13 @@ extern crate termion;
 
 use std::env::args;
 use std::fs::File;
-use std::io::{self, Write, Read};
+use std::io::{self, Read};
 use std::path::Path;
 
 use extra::option::OptionalExt;
 use termion::raw::IntoRawMode;
 
-static MAN_PAGE: &'static str = /* @MANSTART{less} */ r#"
+static MAN_PAGE: &str = /* @MANSTART{less} */ r#"
 NAME
     less - view a text file.
 
@@ -56,8 +56,7 @@ fn main() {
 
     if let Some(x) = args.peek() {
         if x == "--help" || x == "-h" {
-            // Print help.
-            io::stdout().write(MAN_PAGE.as_bytes()).try(&mut stderr);
+            print!("{}", MAN_PAGE);
             return;
         }
     } else {
@@ -65,7 +64,7 @@ fn main() {
         run("-", &mut stdin, &mut terminal, io::stdout()).try(&mut stderr);
     };
 
-    while let Some(filename) = args.next() {
+    for filename in args {
         let file = File::open(Path::new(filename.as_str()));
         match file {
             Ok(mut open_file) => {
@@ -80,6 +79,7 @@ fn main() {
     }
 }
 
+// Run pager on a single file.
 fn run<W: IntoRawMode>(path: &str, file: &mut dyn Read, controls: &mut dyn Read, stdout: W) -> std::io::Result<()> {
     let mut string = String::new();
     file.read_to_string(&mut string)?;

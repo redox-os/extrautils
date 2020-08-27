@@ -20,7 +20,7 @@ fn main() {
     }
 
     if files.is_empty() {
-        writeln!(stderr, "gzip: no files provided").unwrap();
+        eprintln!("gzip: no files provided");
         process::exit(1);
     }
 

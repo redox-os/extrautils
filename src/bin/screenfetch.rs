@@ -3,7 +3,7 @@ extern crate syscall;
 
 use std::env;
 use std::fs::File;
-use std::io::{self, Read, Write};
+use std::io::{Read};
 use std::path::Path;
 
 // std::fmt::Write conflicts with std::io::Write, hence the alias
@@ -14,7 +14,7 @@ const SECONDS_PER_HOUR: i64 = 3600;
 const SECONDS_PER_DAY: i64 = 86400;
 
 fn main() {
-    let user = env::var("USER").unwrap_or(String::new());
+    let user = env::var("USER").unwrap_or_default();
     let mut hostname = String::new();
     if let Ok(mut file) = File::open("file:/etc/hostname") {
         let _ = file.read_to_string(&mut hostname);
@@ -44,9 +44,8 @@ fn main() {
             fmt_result = write!(&mut uptime_str, "{}s", uptime_secs);
         }
 
-        if let Err(_) = fmt_result {
-            // We probably don't want to panic! on this error
-            println!("error: couldn't parse uptime");
+        if let Err(err) = fmt_result {
+            eprintln!("error: couldn't parse uptime, {}", err);
         }
     }
 
@@ -66,9 +65,9 @@ fn main() {
             let mut buf: [u8; 4096] = [0; 4096];
             if let Ok(count) = syscall::fpath(display, &mut buf) {
                 let path = unsafe { String::from_utf8_unchecked(Vec::from(&buf[..count])) };
-                let res = path.split(":").nth(1).unwrap_or("");
-                width = res.split("/").nth(1).unwrap_or("").parse::<i32>().unwrap_or(0);
-                height = res.split("/").nth(2).unwrap_or("").parse::<i32>().unwrap_or(0);
+                let res = path.split(':').nth(1).unwrap_or("");
+                width = res.split('/').nth(1).unwrap_or("").parse::<i32>().unwrap_or(0);
+                height = res.split('/').nth(2).unwrap_or("").parse::<i32>().unwrap_or(0);
             }
             let _ = syscall::close(display);
         }
@@ -92,7 +91,7 @@ fn main() {
                 let size = stat.f_blocks * stat.f_bsize as u64;
                 let used = (stat.f_blocks - stat.f_bfree) * stat.f_bsize as u64;
 
-                ram = format!("{}MB / {}MB", (used + 1048575)/1048576, (size + 1048575)/1048576);
+                ram = format!("{}MB / {}MB", (used + 1_048_575)/1_048_576, (size + 1_048_575)/1_048_576);
             }
             let _ = syscall::close(fd);
         }
@@ -120,30 +119,27 @@ fn main() {
         "              :++++++++:              ",
     ];
 
+    const S: &str = "\x1B[1;38;5;75m"; // blue start
+    const E: &str = "\x1B[0m";         // end
     let right = [
-        format!("\x1B[1;38;5;75m{}\x1B[0m@\x1B[1;38;5;75m{}\x1B[0m", user, hostname.trim()),
-        format!("\x1B[1;38;5;75mOS:\x1B[0m redox-os"),
-        format!("\x1B[1;38;5;75mKernel:\x1B[0m redox"),
-        format!("\x1B[1;38;5;75mUptime:\x1B[0m {}", uptime_str),
-        format!("\x1B[1;38;5;75mShell:\x1B[0m {}", shell),
-        format!("\x1B[1;38;5;75mResolution:\x1B[0m {}x{}", width, height),
-        format!("\x1B[1;38;5;75mDE:\x1B[0m orbital"),
-        format!("\x1B[1;38;5;75mWM:\x1B[0m orbital"),
-        format!("\x1B[1;38;5;75mFont:\x1B[0m unifont"),
-        format!("\x1B[1;38;5;75mCPU:\x1B[0m {}", cpu),
-        format!("\x1B[1;38;5;75mRAM:\x1B[0m {}", ram)
+        format!("{}{}{}@{}{}{}", S, user, E, S, hostname.trim(), E),
+        format!("{}OS:         {}redox-os", S, E),
+        format!("{}Kernel:     {}redox",    S, E),
+        format!("{}Uptime:     {}{}",       S, E, uptime_str),
+        format!("{}Shell:      {}{}",       S, E, shell),
+        format!("{}Resolution: {}{}x{}",    S, E, width, height),
+        format!("{}DE:         {}orbital",  S, E),
+        format!("{}WM:         {}orbital",  S, E),
+        format!("{}Font:       {}unifont",  S, E),
+        format!("{}CPU:        {}{}",       S, E, cpu),
+        format!("{}RAM:        {}{}",       S, E, ram)
     ];
 
-    let mut string = String::new();
-    for i in 0..left.len() {
-        string.push_str("\x1B[1;38;5;75m");
-        string.push_str(left[i]);
-        string.push_str("  \x1B[0m");
+    for (i, line) in left.iter().enumerate() {
+        print!("\x1B[1;38;5;75m{}  \x1B[0m", line);
         if let Some(r) = right.get(i) {
-            string.push_str(r);
+            print!("{}", r);
         }
-        string.push_str("\n");
+        println!();
     }
-
-    io::stdout().write(string.as_bytes()).unwrap();
 }

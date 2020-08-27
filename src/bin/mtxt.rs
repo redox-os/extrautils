@@ -1,15 +1,11 @@
-#![feature(io)]
-
 extern crate extra;
 
 use std::env::args;
-use std::io::{self, Read, Write};
+use std::io::{self};
+use std::io::BufRead;
 use std::process::exit;
 
-use extra::option::OptionalExt;
-use extra::io::{fail, WriteExt};
-
-static MAN_PAGE: &'static str = /* @MANSTART{mtxt} */ r#"
+static MAN_PAGE: &str = /* @MANSTART{mtxt} */ r#"
 NAME
     mtxt - a simple tool to manipulate text from standard input.
 
@@ -72,9 +68,6 @@ COPYRIGHT
 fn main() {
     let stdin = io::stdin();
     let stdin = stdin.lock();
-    let stdout = io::stdout();
-    let mut stdout = stdout.lock();
-    let mut stderr = io::stderr();
 
     // These are the options.
     let mut to_uppercase = false;
@@ -87,56 +80,40 @@ fn main() {
             "-l" | "--to-lowercase" => to_lowercase = true,
             "-a" | "--strip-non-ascii" => strip_non_ascii = true,
             "-h" | "--help" => {
-                // The help page.
-                stdout.write(MAN_PAGE.as_bytes()).try(&mut stderr);
+                print!("{}", MAN_PAGE);
             },
             a => {
-                // The argument, a, is unknown.
-                stderr.write(b"error: unknown argument, ").try(&mut stderr);
-                stderr.write(a.as_bytes()).try(&mut stderr);
-                stderr.write(b".\n").try(&mut stderr);
-                stderr.flush().try(&mut stderr);
+                eprintln!("Error: unknown argument: {}", a);
                 exit(1);
             }
         }
     }
 
     if to_lowercase && to_uppercase {
-        // Fail, since -u and -l are incompatible.
-        fail("-u and -l are incompatible. Aborting.", &mut stderr);
+        eprintln!("-u and -l are incompatible. Aborting.");
+        exit(1);
     }
 
-    // My eyes bleed.
-    //
-    // Anyone?
-    // ...
-    //
-    // Silence.
-    //
-    // If you see this, rewrite the code below. Now, you can't say no. Too late.
-    // Muhahahaha.
-    for i in stdin.chars() {
-        let i = i.try(&mut stderr);
-
-        // TODO handle -a more efficient
-
-        // If -u is set, convert to uppercase
-        if to_uppercase {
-            for uppercase in i.to_uppercase()
-                .filter(|x| !strip_non_ascii || x.is_ascii())
-            {
-                stdout.write_char(uppercase).try(&mut stderr);
+    for u8_line in stdin.lines() {
+        match u8_line {
+            Err(err) => {
+                eprintln!("{}", err);
+                exit(1);
+            },
+            Ok(line) => {
+                for c in line.chars() {
+                    if !strip_non_ascii || c.is_ascii() {
+                        if to_uppercase {
+                            print!("{}", c.to_uppercase().to_string());
+                        } else if to_lowercase {
+                            print!("{}", c.to_lowercase().to_string());
+                        } else {
+                            print!("{}", c);
+                        }
+                    }
+                }
+                println!();
             }
-        // If -l is set, convert to lowercase
-        } else if to_lowercase {
-            for lowercase in i.to_lowercase()
-                .filter(|x| !strip_non_ascii || x.is_ascii())
-            {
-                stdout.write_char(lowercase).try(&mut stderr);
-            }
-        // If -a is set, strip non-ASCII.
-        } else if !strip_non_ascii || strip_non_ascii && i.is_ascii() {
-            stdout.write_char(i).try(&mut stderr);
         }
     }
 }

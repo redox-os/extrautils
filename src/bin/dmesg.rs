@@ -6,7 +6,7 @@ use std::process::{Command, exit};
 
 use extra::option::OptionalExt;
 
-const MAN_PAGE: &'static str = /* @MANSTART{dmesg} */ r#"
+const MAN_PAGE: &str = /* @MANSTART{dmesg} */ r#"
 NAME
     dmesg - display the system message buffer
 
@@ -29,7 +29,7 @@ fn main() {
 
     for arg in env::args().skip(1){
         if arg.as_str() == "-h" || arg.as_str() == "--help" {
-            stdout.write(MAN_PAGE.as_bytes()).try(&mut stderr);
+            print!("{}", MAN_PAGE);
             stdout.flush().try(&mut stderr);
             exit(0);
         }

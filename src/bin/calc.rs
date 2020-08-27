@@ -4,6 +4,7 @@ use extra::io::{fail, WriteExt};
 
 use std::env::args;
 use std::io::{self, Write};
+use std::fmt;
 
 #[derive(Debug, Clone)]
 pub enum Token {
@@ -20,19 +21,21 @@ pub enum Token {
 impl Token {
     pub fn to_str(&self) -> &'static str {
         match self {
-            &Token::Plus       => "Plus",
-            &Token::Minus      => "Minus",
-            &Token::Divide     => "Divide",
-            &Token::Multiply   => "Multiply",
-            &Token::Exponent   => "Exponent",
-            &Token::OpenParen  => "OpenParen",
-            &Token::CloseParen => "CloseParen",
-            &Token::Number(_)  => "Number",
+            Token::Plus       => "Plus",
+            Token::Minus      => "Minus",
+            Token::Divide     => "Divide",
+            Token::Multiply   => "Multiply",
+            Token::Exponent   => "Exponent",
+            Token::OpenParen  => "OpenParen",
+            Token::CloseParen => "CloseParen",
+            Token::Number(_)  => "Number",
         }
     }
+}
 
-    pub fn to_string(&self) -> String {
-        self.to_str().to_owned()
+impl fmt::Display for Token {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.to_str())
     }
 }
 
@@ -54,8 +57,8 @@ pub struct IntermediateResult {
 impl IntermediateResult {
     fn new(value: f64, tokens_read: usize) -> Self {
         IntermediateResult {
-            value: value,
-            tokens_read: tokens_read,
+            value,
+            tokens_read,
         }
     }
 }
@@ -140,7 +143,7 @@ fn consume_number(input: &[char]) -> String {
 fn consume_until_new_token(input: &[char]) -> String {
     input.iter()
          .take_while(|c| !(c.is_whitespace() || c.is_operator() || c.is_digit(10)))
-         .map(|&c| c)
+         .copied()
          .collect()
 }
 
@@ -225,14 +228,14 @@ pub fn g_expr(token_list: &[Token]) -> Result<IntermediateResult, ParseError> {
             Token::Number(ref n) => {
                 n.parse::<f64>()
                  .map_err(|_| ParseError::InvalidNumber(n.clone()))
-                 .and_then(|num| Ok(IntermediateResult::new(num, 1)))
+                 .map(|num| IntermediateResult::new(num, 1))
             }
             Token::Minus => {
                 if token_list.len() > 1 {
                     if let Token::Number(ref n) = token_list[1] {
                         n.parse::<f64>()
                          .map_err(|_| ParseError::InvalidNumber(n.clone()))
-                         .and_then(|num| Ok(IntermediateResult::new(-1.0 * num, 2)))
+                         .map(|num| IntermediateResult::new(-1.0 * num, 2))
                     } else {
                         Err(ParseError::UnexpectedToken(token_list[1].to_string(), "number"))
                     }
@@ -357,9 +360,8 @@ fn main() {
         let input: Vec<String> = args.skip(1).collect();
         stdout.writeln(eval(&input.join("")).as_bytes()).try(&mut stderr);
     } else {
-        let prompt = "[]> ".as_bytes();
         loop {
-            stdout.write(prompt).try(&mut stderr);
+            print!("[]> ");
             stdout.flush().try(&mut stderr);
             let mut input = String::new();
             io::stdin().read_line(&mut input)

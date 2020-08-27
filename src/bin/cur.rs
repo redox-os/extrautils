@@ -3,10 +3,9 @@ extern crate extra;
 use std::env::args;
 use std::io::{self, Write, Read};
 
-use extra::option::OptionalExt;
 use extra::io::fail;
 
-static MAN_PAGE: &'static str = /* @MANSTART{cur} */ r#"
+static MAN_PAGE: &str = /* @MANSTART{cur} */ r#"
 NAME
     cur - freely move you cursor using H, J, K, and L (Vi-bindings).
 
@@ -47,13 +46,6 @@ COPYRIGHT
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 "#; /* @MANEND */
 
-fn csi<T: Write>(stdout: &mut T, other: &str) {
-    // Print CSI (control sequence introducer)
-    if let Ok(2) = stdout.write("\x1b[".as_bytes()) {
-        let _ = stdout.write(other.as_bytes());
-    }
-}
-
 fn main() {
     let args = args().skip(1);
     let stdin = io::stdin();
@@ -66,7 +58,7 @@ fn main() {
         match i.as_str() {
             // Print the help page.
             "-h" | "--help" => {
-                stdout.write(MAN_PAGE.as_bytes()).try(&mut stderr);
+                print!("{}", MAN_PAGE);
             },
             // This argument is unknown.
             _ => fail("unknown argument.", &mut stderr),
@@ -80,10 +72,10 @@ fn main() {
 
         // Output the right escape code to stdout.
         match input[0] {
-            b'k' => csi(&mut stdout, "A"),
-            b'j' => csi(&mut stdout, "B"),
-            b'l' => csi(&mut stdout, "C"),
-            b'h' => csi(&mut stdout, "D"),
+            b'k' => print!("\x1b[A"),
+            b'j' => print!("\x1b[B"),
+            b'l' => print!("\x1b[C"),
+            b'h' => print!("\x1b[D"),
             b'q' => break,
             _ => {},
         }

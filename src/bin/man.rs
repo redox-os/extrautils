@@ -1,8 +1,7 @@
 use std::env;
-use std::io::{stdout, stderr, Write};
-use std::process::{self, Command};
+use std::process::{Command, exit};
 
-static MAN_PAGE: &'static str = /* @MANSTART{man} */ r#"
+static MAN_PAGE: &str = /* @MANSTART{man} */ r#"
 NAME
     man - view a man page.
 
@@ -44,15 +43,15 @@ fn main() {
         match arg.as_str() {
             "--help" | "-h" => {
                 // Print help.
-                stdout().write(MAN_PAGE.as_bytes()).unwrap();
-                return;
+                eprint!("{}", MAN_PAGE);
+                exit(0);
             },
             page => {
                 Command::new("less").arg(&("/ref/".to_owned() + page)).spawn().unwrap().wait().unwrap();
             }
         }
     } else {
-        stderr().write(b"Which manual page do you want?\n").unwrap();
-        process::exit(1);
+        eprintln!("Which manual page do you want?");
+        exit(1);
     }
 }

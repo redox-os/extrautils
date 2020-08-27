@@ -14,7 +14,7 @@ use extra::option::OptionalExt;
 use termion::{async_stdin, clear, cursor, style, terminal_size};
 use termion::raw::IntoRawMode;
 
-static MAN_PAGE: &'static str = /* @MANSTART{watch} */ r#"
+static MAN_PAGE: &str = /* @MANSTART{watch} */ r#"
 NAME
     watch - execute a program periodically, showing output fullscreen
 
@@ -73,11 +73,11 @@ fn main() {
                     if let Ok(interval_num) = interval_str.parse::<u64>() {
                         interval = cmp::max(1, interval_num);
                     } else {
-                        stderr.write(b"watch: interval argument not specified").unwrap();
+                        eprintln!("watch: interval argument not specified");
                         process::exit(1);
                     }
                 } else {
-                    stderr.write(b"watch: interval argument not specified").unwrap();
+                    eprintln!("watch: interval argument not specified");
                     process::exit(1);
                 }
             },
@@ -91,7 +91,7 @@ fn main() {
     }
 
     if command.is_empty() {
-        stderr.write(b"watch: command argument not specified").unwrap();
+        eprintln!("watch: command argument not specified");
         process::exit(1);
     }
 
@@ -101,7 +101,7 @@ fn main() {
 fn run<W: IntoRawMode>(command: String, interval: u64, stdout: W) -> std::io::Result<()> {
     let title = format!("Every {}s: {}", interval, command);
 
-    let shell = env::var("SHELL").unwrap_or(String::from("sh"));
+    let shell = env::var("SHELL").unwrap_or_else(|_| String::from("sh"));
 
     let mut stdout = stdout.into_raw_mode()?;
 
@@ -118,18 +118,16 @@ fn run<W: IntoRawMode>(command: String, interval: u64, stdout: W) -> std::io::Re
 
         let output = String::from_utf8_lossy(&child.stdout);
 
-        let mut y = 0;
-        for line in output.lines() {
-            write!(stdout, "{}", cursor::Goto(1, y + 1))?;
+        for (y, line) in output.lines().enumerate() {
+            write!(stdout, "{}", cursor::Goto(1, (y + 1) as u16))?;
 
             if line.len() > w as usize {
-                stdout.write(line[..w as usize].as_bytes())?;
+                stdout.write_all(line[..w as usize].as_bytes())?;
             } else {
-                stdout.write(line.as_bytes())?;
+                stdout.write_all(line.as_bytes())?;
             }
 
-            y += 1;
-            if y >= h as u16 {
+            if (y + 1) as u16 >= h {
                 break;
             }
         }
