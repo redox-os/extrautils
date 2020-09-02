@@ -5,16 +5,16 @@ extern crate termion;
 
 use std::env::args;
 use std::fs::File;
-use std::io::{self, Write, Read};
+use std::io::{self, Read, Write};
 use std::path::{Path, PathBuf};
 use std::str::Chars;
 
 use extra::option::OptionalExt;
 
-use termion::{clear, color, cursor, style, terminal_size};
 use termion::event::Key;
 use termion::input::TermRead;
 use termion::raw::{IntoRawMode, RawTerminal};
+use termion::{clear, color, cursor, style, terminal_size};
 
 static MAN_PAGE: &str = /* @MANSTART{mdless} */ r#"
 NAME
@@ -160,7 +160,7 @@ impl Block {
         while let Some(c) = s.next() {
             match c {
                 ']' => break,
-                _ => blocks.push(Block::Text(c))
+                _ => blocks.push(Block::Text(c)),
             }
         }
 
@@ -169,7 +169,7 @@ impl Block {
                 match c {
                     '(' => (),
                     ')' => break,
-                    _ => link.push(c)
+                    _ => link.push(c),
                 }
             }
         }
@@ -182,49 +182,57 @@ impl Block {
 
         while let Some(c) = s.next() {
             match c {
-                '*' => if s.as_str().starts_with('*') {
-                    let _ = s.next();
-                    blocks.push(Block::parse_bold(s));
-                } else {
-                    blocks.push(Block::parse_italic(s));
-                },
+                '*' => {
+                    if s.as_str().starts_with('*') {
+                        let _ = s.next();
+                        blocks.push(Block::parse_bold(s));
+                    } else {
+                        blocks.push(Block::parse_italic(s));
+                    }
+                }
                 '`' => blocks.push(Block::parse_code(s)),
                 '[' => blocks.push(Block::parse_link(s)),
-                _ => blocks.push(Block::Text(c))
+                _ => blocks.push(Block::Text(c)),
             }
         }
 
         blocks
     }
 
-    fn draw<W: IntoRawMode>(&self, to: &mut RawTerminal<W>, path: &PathBuf, next: &mut Vec<PathBuf>, next_i: usize) -> std::io::Result<usize> {
+    fn draw<W: IntoRawMode>(
+        &self,
+        to: &mut RawTerminal<W>,
+        path: &PathBuf,
+        next: &mut Vec<PathBuf>,
+        next_i: usize,
+    ) -> std::io::Result<usize> {
         let mut count = 0;
 
         match *self {
             Block::Text(c) => {
                 count += to.write(&[c as u8])?;
-            },
+            }
             Block::Bold(ref blocks) => {
                 write!(to, "{}", style::Bold)?;
                 for block in blocks.iter() {
                     count += block.draw(to, path, next, next_i)?;
                 }
                 write!(to, "{}", style::NoBold)?;
-            },
+            }
             Block::Italic(ref blocks) => {
                 write!(to, "{}", style::Italic)?;
                 for block in blocks.iter() {
                     count += block.draw(to, path, next, next_i)?;
                 }
                 write!(to, "{}", style::NoItalic)?;
-            },
+            }
             Block::Code(ref blocks) => {
                 write!(to, "{}", color::Bg(color::AnsiValue::grayscale(6)))?;
                 for block in blocks.iter() {
                     count += block.draw(to, path, next, next_i)?;
                 }
                 write!(to, "{}", color::Bg(color::Reset))?;
-            },
+            }
             Block::Link(ref blocks, ref link) => {
                 let highlight = next.len() == next_i;
 
@@ -236,14 +244,14 @@ impl Block {
 
                     for part in Path::new(&link).iter() {
                         match part.to_str().unwrap() {
-                            "." => {},
+                            "." => {}
                             ".." => {
                                 while next_path.ends_with(".") && next_path.pop() {}
-                                if next_path.ends_with("..") || ! next_path.pop() {
+                                if next_path.ends_with("..") || !next_path.pop() {
                                     next_path.push(part);
                                 }
-                            },
-                            _ => next_path.push(part)
+                            }
+                            _ => next_path.push(part),
                         }
                     }
 
@@ -261,7 +269,7 @@ impl Block {
                 if highlight {
                     write!(to, "{}", style::NoInvert)?;
                 }
-            },
+            }
         }
 
         Ok(count)
@@ -275,7 +283,7 @@ struct Buffer {
 
 impl Buffer {
     fn new() -> Buffer {
-        Buffer{
+        Buffer {
             lines: Vec::new(),
             y_off: 0,
         }
@@ -285,17 +293,27 @@ impl Buffer {
         let mut tmp = String::new();
         let res = from.read_to_string(&mut tmp)?;
 
-        self.lines.append(&mut tmp
-            .as_str()
-            .split('\n')
-            .map(|x| { Block::parse(&mut x.chars()) })
-            .collect());
+        self.lines.append(
+            &mut tmp
+                .as_str()
+                .split('\n')
+                .map(|x| Block::parse(&mut x.chars()))
+                .collect(),
+        );
 
         Ok(res)
     }
 
     #[allow(clippy::explicit_counter_loop)]
-    fn draw<W: IntoRawMode>(&self, to: &mut RawTerminal<W>, path: &PathBuf, next: &mut Vec<PathBuf>, next_i: usize, w: u16, h: u16) -> std::io::Result<usize> {
+    fn draw<W: IntoRawMode>(
+        &self,
+        to: &mut RawTerminal<W>,
+        path: &PathBuf,
+        next: &mut Vec<PathBuf>,
+        next_i: usize,
+        w: u16,
+        h: u16,
+    ) -> std::io::Result<usize> {
         write!(to, "{}{}{}", clear::All, style::Reset, cursor::Goto(1, 1))?;
 
         let mut y = 0;
@@ -341,7 +359,12 @@ impl Buffer {
     }
 }
 
-fn run<W: IntoRawMode>(mut path: PathBuf, file: &mut dyn Read, controls: &mut dyn Read, stdout: &mut W) -> std::io::Result<()> {
+fn run<W: IntoRawMode>(
+    mut path: PathBuf,
+    file: &mut dyn Read,
+    controls: &mut dyn Read,
+    stdout: &mut W,
+) -> std::io::Result<()> {
     let mut stdout = stdout.into_raw_mode()?;
 
     let (w, h) = {
@@ -357,22 +380,39 @@ fn run<W: IntoRawMode>(mut path: PathBuf, file: &mut dyn Read, controls: &mut dy
 
     buffer.draw(&mut stdout, &path, &mut next, next_i, w, h - 1)?;
 
-    write!(stdout, "{}{}{} Press q to exit.{}", cursor::Goto(1, h), style::Invert, path.display(), style::NoInvert)?;
+    write!(
+        stdout,
+        "{}{}{} Press q to exit.{}",
+        cursor::Goto(1, h),
+        style::Invert,
+        path.display(),
+        style::NoInvert
+    )?;
 
     stdout.flush()?;
 
     for c in controls.keys() {
         match c.unwrap() {
             Key::Char('q') => {
-                write!(stdout, "{}{}{}", clear::All, style::Reset, cursor::Goto(1, 1))?;
+                write!(
+                    stdout,
+                    "{}{}{}",
+                    clear::All,
+                    style::Reset,
+                    cursor::Goto(1, 1)
+                )?;
                 break;
-            },
-            Key::Char('b') => for _i in 1..h {
-                buffer.scroll_up()
-            },
-            Key::Char(' ') => for _i in 1..h {
-                buffer.scroll_down(h)
-            },
+            }
+            Key::Char('b') => {
+                for _i in 1..h {
+                    buffer.scroll_up()
+                }
+            }
+            Key::Char(' ') => {
+                for _i in 1..h {
+                    buffer.scroll_down(h)
+                }
+            }
             Key::Up | Key::Char('k') => buffer.scroll_up(),
             Key::Down | Key::Char('j') => buffer.scroll_down(h),
             Key::Char('\t') => {
@@ -380,7 +420,7 @@ fn run<W: IntoRawMode>(mut path: PathBuf, file: &mut dyn Read, controls: &mut dy
                 if next_i >= next.len() {
                     next_i = 0;
                 }
-            },
+            }
             Key::Char('\r') | Key::Char('\n') => {
                 if let Some(next_path) = next.get(next_i) {
                     if let Ok(mut next_file) = File::open(&next_path) {
@@ -391,14 +431,21 @@ fn run<W: IntoRawMode>(mut path: PathBuf, file: &mut dyn Read, controls: &mut dy
                     }
                 }
             }
-            _ => {},
+            _ => {}
         }
 
         next = Vec::new();
 
         buffer.draw(&mut stdout, &path, &mut next, next_i, w, h - 1)?;
 
-        write!(stdout, "{}{}{} Press q to exit.{}", cursor::Goto(1, h), style::Invert, path.display(), style::NoInvert)?;
+        write!(
+            stdout,
+            "{}{}{} Press q to exit.{}",
+            cursor::Goto(1, h),
+            style::Invert,
+            path.display(),
+            style::NoInvert
+        )?;
 
         stdout.flush()?;
     }

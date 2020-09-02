@@ -1,9 +1,9 @@
 extern crate extra;
 
-use std::{str, env};
-use std::io::Write;
 use std::fs::File;
+use std::io::Write;
 use std::process::exit;
+use std::{env, str};
 
 static MAN_PAGE: &str = /* @MANSTART{keymap} */ r#"
 NAME
@@ -24,11 +24,10 @@ OPTIONS
         List available keymaps.
 "#; /* @MANEND */
 
-
 fn main() {
     let mut args = env::args().skip(1);
 
-    let arg  = match args.next() {
+    let arg = match args.next() {
         Some(arg) => arg,
         None => {
             eprintln!("Must specify keymap name.");
@@ -39,10 +38,10 @@ fn main() {
         match arg.as_str() {
             "-h" | "--help" => {
                 print!("{}", MAN_PAGE);
-            },
+            }
             "-l" | "--list" => {
                 // TODO list keymaps
-            },
+            }
             _ => {
                 eprintln!("Unknown option: {}", arg);
                 exit(1);
@@ -59,8 +58,7 @@ fn main() {
                 eprintln!("keymap: could not change keymap: {}", e);
                 exit(1);
             }
-
-        },
+        }
         Err(err) => {
             eprintln!("keymap: failed to open display: {}", err);
             exit(1);

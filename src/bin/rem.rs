@@ -98,17 +98,22 @@ fn main() {
 
     // Loop over the arguments.
     while let Some(arg) = args.next() {
-
         match arg.as_str() {
             "--help" => {
                 print!("{}", MAN_PAGE);
                 return;
-            },
+            }
             "-h" => {
                 print!("{}", SHORT_HELP);
                 return;
-            },
-            "-n" | "--len" => len = args.next().fail("no number after -n.", &mut stderr).parse().try(&mut stderr),
+            }
+            "-n" | "--len" => {
+                len = args
+                    .next()
+                    .fail("no number after -n.", &mut stderr)
+                    .parse()
+                    .try(&mut stderr)
+            }
             "-b" | "--blink" => blink = true,
             t => {
                 // Find number input.
@@ -116,18 +121,18 @@ fn main() {
                     eprintln!("error: incorrectly formatted number.  Please input a positive integer.");
                     exit(1);
                 }).parse().try(&mut stderr);
-                ms += num * match t {
-                    "-m" | "--minutes" => 1000 * 60,
-                    "-H" | "--hours" => 1000 * 60 * 60,
-                    "-s" | "--seconds" => 1000,
-                    "-M" | "--milliseconds" => 1,
-                    _ => {
-                        eprintln!("Error: unknown argument, {}", t);
-                        exit(1);
-                    },
-
-                };
-            },
+                ms += num
+                    * match t {
+                        "-m" | "--minutes" => 1000 * 60,
+                        "-H" | "--hours" => 1000 * 60 * 60,
+                        "-s" | "--seconds" => 1000,
+                        "-M" | "--milliseconds" => 1,
+                        _ => {
+                            eprintln!("Error: unknown argument, {}", t);
+                            exit(1);
+                        }
+                    };
+            }
         }
     }
 
@@ -152,7 +157,6 @@ fn main() {
         // Sleep.
         sleep(Duration::from_millis(ms / len));
     }
-
 
     if blink {
         // This will print a blinking red banner.

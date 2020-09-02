@@ -80,7 +80,12 @@ fn main() {
 }
 
 // Run pager on a single file.
-fn run<W: IntoRawMode>(path: &str, file: &mut dyn Read, controls: &mut dyn Read, stdout: W) -> std::io::Result<()> {
+fn run<W: IntoRawMode>(
+    path: &str,
+    file: &mut dyn Read,
+    controls: &mut dyn Read,
+    stdout: W,
+) -> std::io::Result<()> {
     let mut string = String::new();
     file.read_to_string(&mut string)?;
 
