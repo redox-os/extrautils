@@ -1,8 +1,8 @@
 extern crate extra;
 
 use std::env::args;
-use std::io::{self};
 use std::io::BufRead;
+use std::io::{self};
 use std::process::exit;
 
 static MAN_PAGE: &str = /* @MANSTART{mtxt} */ r#"
@@ -81,7 +81,7 @@ fn main() {
             "-a" | "--strip-non-ascii" => strip_non_ascii = true,
             "-h" | "--help" => {
                 print!("{}", MAN_PAGE);
-            },
+            }
             a => {
                 eprintln!("Error: unknown argument: {}", a);
                 exit(1);
@@ -99,7 +99,7 @@ fn main() {
             Err(err) => {
                 eprintln!("{}", err);
                 exit(1);
-            },
+            }
             Ok(line) => {
                 for c in line.chars() {
                     if !strip_non_ascii || c.is_ascii() {

@@ -1,9 +1,9 @@
 extern crate extra;
 
-use std::io;
-use std::io::{BufRead, BufReader};
 use std::env;
 use std::fs::File;
+use std::io;
+use std::io::{BufRead, BufReader};
 use std::path::Path;
 use std::process::exit;
 
@@ -45,7 +45,11 @@ struct Flags {
 
 impl Flags {
     fn new() -> Flags {
-        Flags { line_numbers: false, invert_match: false, count: false }
+        Flags {
+            line_numbers: false,
+            invert_match: false,
+            count: false,
+        }
     }
 }
 
@@ -62,7 +66,7 @@ fn main() {
             match arg.as_str() {
                 "-h" | "--help" => {
                     print!("{}", MAN_PAGE);
-                },
+                }
                 "-n" | "--line-number" => flags.line_numbers = true,
                 "-v" | "--invert-match" => flags.invert_match = true,
                 "-c" | "--count" => flags.count = true,

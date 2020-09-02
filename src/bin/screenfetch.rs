@@ -3,7 +3,7 @@ extern crate syscall;
 
 use std::env;
 use std::fs::File;
-use std::io::{Read};
+use std::io::Read;
 use std::path::Path;
 
 // std::fmt::Write conflicts with std::io::Write, hence the alias
@@ -32,14 +32,19 @@ fn main() {
 
         let fmt_result;
         if uptime_days > 0 {
-            fmt_result = write!(&mut uptime_str, "{}d {}h {}m {}s", uptime_days,
-                                uptime_hours, uptime_mins, uptime_secs);
+            fmt_result = write!(
+                &mut uptime_str,
+                "{}d {}h {}m {}s",
+                uptime_days, uptime_hours, uptime_mins, uptime_secs
+            );
         } else if uptime_hours > 0 {
-            fmt_result = write!(&mut uptime_str, "{}h {}m {}s", uptime_hours,
-                                uptime_mins, uptime_secs);
+            fmt_result = write!(
+                &mut uptime_str,
+                "{}h {}m {}s",
+                uptime_hours, uptime_mins, uptime_secs
+            );
         } else if uptime_mins > 0 {
-            fmt_result = write!(&mut uptime_str, "{}m {}s", uptime_mins,
-                                uptime_secs);
+            fmt_result = write!(&mut uptime_str, "{}m {}s", uptime_mins, uptime_secs);
         } else {
             fmt_result = write!(&mut uptime_str, "{}s", uptime_secs);
         }
@@ -66,8 +71,18 @@ fn main() {
             if let Ok(count) = syscall::fpath(display, &mut buf) {
                 let path = unsafe { String::from_utf8_unchecked(Vec::from(&buf[..count])) };
                 let res = path.split(':').nth(1).unwrap_or("");
-                width = res.split('/').nth(1).unwrap_or("").parse::<i32>().unwrap_or(0);
-                height = res.split('/').nth(2).unwrap_or("").parse::<i32>().unwrap_or(0);
+                width = res
+                    .split('/')
+                    .nth(1)
+                    .unwrap_or("")
+                    .parse::<i32>()
+                    .unwrap_or(0);
+                height = res
+                    .split('/')
+                    .nth(2)
+                    .unwrap_or("")
+                    .parse::<i32>()
+                    .unwrap_or(0);
             }
             let _ = syscall::close(display);
         }
@@ -91,7 +106,11 @@ fn main() {
                 let size = stat.f_blocks * stat.f_bsize as u64;
                 let used = (stat.f_blocks - stat.f_bfree) * stat.f_bsize as u64;
 
-                ram = format!("{}MB / {}MB", (used + 1_048_575)/1_048_576, (size + 1_048_575)/1_048_576);
+                ram = format!(
+                    "{}MB / {}MB",
+                    (used + 1_048_575) / 1_048_576,
+                    (size + 1_048_575) / 1_048_576
+                );
             }
             let _ = syscall::close(fd);
         }
@@ -120,19 +139,19 @@ fn main() {
     ];
 
     const S: &str = "\x1B[1;38;5;75m"; // blue start
-    const E: &str = "\x1B[0m";         // end
+    const E: &str = "\x1B[0m"; // end
     let right = [
         format!("{}{}{}@{}{}{}", S, user, E, S, hostname.trim(), E),
         format!("{}OS:         {}redox-os", S, E),
-        format!("{}Kernel:     {}redox",    S, E),
-        format!("{}Uptime:     {}{}",       S, E, uptime_str),
-        format!("{}Shell:      {}{}",       S, E, shell),
-        format!("{}Resolution: {}{}x{}",    S, E, width, height),
-        format!("{}DE:         {}orbital",  S, E),
-        format!("{}WM:         {}orbital",  S, E),
-        format!("{}Font:       {}unifont",  S, E),
-        format!("{}CPU:        {}{}",       S, E, cpu),
-        format!("{}RAM:        {}{}",       S, E, ram)
+        format!("{}Kernel:     {}redox", S, E),
+        format!("{}Uptime:     {}{}", S, E, uptime_str),
+        format!("{}Shell:      {}{}", S, E, shell),
+        format!("{}Resolution: {}{}x{}", S, E, width, height),
+        format!("{}DE:         {}orbital", S, E),
+        format!("{}WM:         {}orbital", S, E),
+        format!("{}Font:       {}unifont", S, E),
+        format!("{}CPU:        {}{}", S, E, cpu),
+        format!("{}RAM:        {}{}", S, E, ram),
     ];
 
     for (i, line) in left.iter().enumerate() {

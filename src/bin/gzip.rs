@@ -3,8 +3,8 @@ extern crate libflate;
 
 use extra::option::OptionalExt;
 use libflate::gzip::Encoder;
-use std::{env, fs, io, process};
 use std::io::Write;
+use std::{env, fs, io, process};
 
 fn main() {
     let mut stderr = io::stderr();
@@ -35,7 +35,7 @@ fn main() {
             let mut encoded = encoder.finish().into_result().try(&mut stderr);
             encoded.flush().try(&mut stderr);
         }
-        if ! keep {
+        if !keep {
             fs::remove_file(&arg).try(&mut stderr);
         }
     }

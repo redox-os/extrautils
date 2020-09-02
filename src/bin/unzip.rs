@@ -2,8 +2,8 @@
 
 extern crate zip;
 
-use std::io;
 use std::fs;
+use std::io;
 
 fn main() {
     std::process::exit(real_main());
@@ -32,10 +32,19 @@ fn real_main() -> i32 {
         }
 
         if (&*file.name()).ends_with('/') {
-            println!("File {} extracted to \"{}\"", i, outpath.as_path().display());
+            println!(
+                "File {} extracted to \"{}\"",
+                i,
+                outpath.as_path().display()
+            );
             fs::create_dir_all(&outpath).unwrap();
         } else {
-            println!("File {} extracted to \"{}\" ({} bytes)", i, outpath.as_path().display(), file.size());
+            println!(
+                "File {} extracted to \"{}\" ({} bytes)",
+                i,
+                outpath.as_path().display(),
+                file.size()
+            );
             if let Some(p) = outpath.parent() {
                 if !p.exists() {
                     fs::create_dir_all(&p).unwrap();
@@ -46,7 +55,7 @@ fn real_main() -> i32 {
         }
 
         // Get and Set permissions
-        #[cfg(any(unix, target_os="redox"))]
+        #[cfg(any(unix, target_os = "redox"))]
         {
             use std::os::unix::fs::PermissionsExt;
 

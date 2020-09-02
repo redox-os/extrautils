@@ -43,12 +43,22 @@ fn main() {
         match arg.as_str() {
             "--help" | "-h" => {
                 print!("{}", MAN_PAGE);
-            },
+            }
             page => {
-                Command::new("mdless").arg(&("/info/".to_owned() + page)).spawn().unwrap().wait().unwrap();
+                Command::new("mdless")
+                    .arg(&("/info/".to_owned() + page))
+                    .spawn()
+                    .unwrap()
+                    .wait()
+                    .unwrap();
             }
         }
     } else {
-        Command::new("mdless").arg(&("/info/index.md".to_owned())).spawn().unwrap().wait().unwrap();
+        Command::new("mdless")
+            .arg(&("/info/index.md".to_owned()))
+            .spawn()
+            .unwrap()
+            .wait()
+            .unwrap();
     }
 }

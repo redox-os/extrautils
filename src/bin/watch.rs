@@ -3,16 +3,16 @@
 extern crate extra;
 extern crate termion;
 
-use std::{cmp, str, thread};
 use std::env::{self, args};
-use std::io::{self, Write, Read};
+use std::io::{self, Read, Write};
 use std::process::{self, Command, Stdio};
 use std::time::Duration;
+use std::{cmp, str, thread};
 
 use extra::option::OptionalExt;
 
-use termion::{async_stdin, clear, cursor, style, terminal_size};
 use termion::raw::IntoRawMode;
+use termion::{async_stdin, clear, cursor, style, terminal_size};
 
 static MAN_PAGE: &str = /* @MANSTART{watch} */ r#"
 NAME
@@ -67,7 +67,7 @@ fn main() {
                 // Print help.
                 stdout.write(MAN_PAGE.as_bytes()).try(&mut stderr);
                 return;
-            },
+            }
             "--interval" | "-n" => {
                 if let Some(interval_str) = args.next() {
                     if let Ok(interval_num) = interval_str.parse::<u64>() {
@@ -80,7 +80,7 @@ fn main() {
                     eprintln!("watch: interval argument not specified");
                     process::exit(1);
                 }
-            },
+            }
             arg => {
                 if !command.is_empty() {
                     command.push(' ');
@@ -110,11 +110,21 @@ fn run<W: IntoRawMode>(command: String, interval: u64, stdout: W) -> std::io::Re
     let mut stdin = async_stdin();
 
     'watching: loop {
-        write!(stdout, "{}{}{}", clear::All, style::Reset, cursor::Goto(1, 1))?;
+        write!(
+            stdout,
+            "{}{}{}",
+            clear::All,
+            style::Reset,
+            cursor::Goto(1, 1)
+        )?;
 
-        let child = Command::new(&shell).arg("-c").arg(&command)
-                        .stdin(Stdio::null()).stdout(Stdio::piped()).stderr(Stdio::piped())
-                        .output()?;
+        let child = Command::new(&shell)
+            .arg("-c")
+            .arg(&command)
+            .stdin(Stdio::null())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .output()?;
 
         let output = String::from_utf8_lossy(&child.stdout);
 
@@ -132,11 +142,18 @@ fn run<W: IntoRawMode>(command: String, interval: u64, stdout: W) -> std::io::Re
             }
         }
 
-        write!(stdout, "{}{}{}{}", cursor::Goto(1, h), style::Invert, title, style::NoInvert)?;
+        write!(
+            stdout,
+            "{}{}{}{}",
+            cursor::Goto(1, h),
+            style::Invert,
+            title,
+            style::NoInvert
+        )?;
 
         stdout.flush()?;
 
-        for _second in 0..interval*10 {
+        for _second in 0..interval * 10 {
             for b in (&mut stdin).bytes() {
                 if b? == b'q' {
                     break 'watching;
@@ -147,7 +164,13 @@ fn run<W: IntoRawMode>(command: String, interval: u64, stdout: W) -> std::io::Re
         }
     }
 
-    write!(stdout, "{}{}{}", clear::All, style::Reset, cursor::Goto(1, 1))?;
+    write!(
+        stdout,
+        "{}{}{}",
+        clear::All,
+        style::Reset,
+        cursor::Goto(1, 1)
+    )?;
 
     Ok(())
 }

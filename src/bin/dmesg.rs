@@ -1,8 +1,8 @@
 extern crate extra;
 
 use std::env;
-use std::io::{stdout, stderr, Write};
-use std::process::{Command, exit};
+use std::io::{stderr, stdout, Write};
+use std::process::{exit, Command};
 
 use extra::option::OptionalExt;
 
@@ -27,7 +27,7 @@ fn main() {
     let mut stdout = stdout.lock();
     let mut stderr = stderr();
 
-    for arg in env::args().skip(1){
+    for arg in env::args().skip(1) {
         if arg.as_str() == "-h" || arg.as_str() == "--help" {
             print!("{}", MAN_PAGE);
             stdout.flush().try(&mut stderr);
@@ -35,5 +35,10 @@ fn main() {
         }
     }
 
-    Command::new("less").arg("sys:/log").spawn().unwrap().wait().unwrap();
+    Command::new("less")
+        .arg("sys:/log")
+        .spawn()
+        .unwrap()
+        .wait()
+        .unwrap();
 }

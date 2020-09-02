@@ -1,7 +1,7 @@
 extern crate extra;
 
 use std::env::args;
-use std::io::{self, Write, Read};
+use std::io::{self, Read, Write};
 
 use extra::io::fail;
 
@@ -59,7 +59,7 @@ fn main() {
             // Print the help page.
             "-h" | "--help" => {
                 print!("{}", MAN_PAGE);
-            },
+            }
             // This argument is unknown.
             _ => fail("unknown argument.", &mut stderr),
         }
@@ -77,7 +77,7 @@ fn main() {
             b'l' => print!("\x1b[C"),
             b'h' => print!("\x1b[D"),
             b'q' => break,
-            _ => {},
+            _ => {}
         }
 
         // Flush it.
