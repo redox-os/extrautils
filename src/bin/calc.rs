@@ -476,6 +476,13 @@ mod test {
         assert_eq!(tokenize("2^3^2").and_then(parse).unwrap(), "512");
         assert_eq!(tokenize("2^(2+1)^2").and_then(parse).unwrap(), "512");
     }
+
+    #[test]
+    fn functions() {
+        assert_eq!(tokenize("signum(-42)").and_then(parse).unwrap(), "-1");
+        assert_eq!(tokenize("copysign(-123, 3)").and_then(parse).unwrap(), "123");
+        assert_eq!(tokenize("min(5, max(3, 9))+trunc(9.1)").and_then(parse).unwrap(), "14");
+    }
 }
 
 fn eval(input: &str) -> String {
