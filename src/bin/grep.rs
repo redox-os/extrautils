@@ -66,43 +66,54 @@ fn main() {
             match arg.as_str() {
                 "-h" | "--help" => {
                     print!("{}", MAN_PAGE);
+                    exit(0);
                 }
                 "-n" | "--line-number" => flags.line_numbers = true,
                 "-v" | "--invert-match" => flags.invert_match = true,
                 "-c" | "--count" => flags.count = true,
                 _ => {
                     eprintln!("Error, unknown option: {}", arg);
-                    exit(1);
+                    exit(2);
                 }
             }
         } else if pattern.is_empty() {
             pattern = arg.clone();
         } else {
-            match File::open(&Path::new(&arg)) {
-                Ok(f) => files.push(f),
-                Err(err) => {
-                    eprintln!("Error opening {}: {}", arg, err);
-                    exit(1);
-                }
-            }
+            files.push(arg)
         }
     }
 
     if pattern.is_empty() {
         eprintln!("You must provide a pattern");
-        exit(1);
+        exit(2);
     }
 
+    let mut found = false;
+    let mut error = false;
     if files.is_empty() {
-        do_simple_search(BufReader::new(stdin), &pattern, flags);
+        found = do_simple_search(BufReader::new(stdin), &pattern, flags);
     } else {
-        for f in files {
-            do_simple_search(BufReader::new(f), &pattern, flags);
+        for path in files {
+            match File::open(&Path::new(&path)) {
+                Ok(f) => {
+                    found |= do_simple_search(BufReader::new(f), &pattern, flags);
+                }
+                Err(err) => {
+                    eprintln!("Error opening {}: {}", path, err);
+                    error = true;
+                }
+            }
         }
+    }
+    if error {
+        exit(2);
+    }
+    if !found {
+        exit(1);
     }
 }
 
-fn do_simple_search<T: BufRead>(reader: T, pattern: &str, flags: Flags) {
+fn do_simple_search<T: BufRead>(reader: T, pattern: &str, flags: Flags) -> bool {
     let mut count = 0;
     for (line_num, result) in reader.lines().enumerate() {
         if let Ok(line) = result {
@@ -123,4 +134,6 @@ fn do_simple_search<T: BufRead>(reader: T, pattern: &str, flags: Flags) {
     if flags.count {
         println!("{}", count);
     }
+
+    return count > 0;
 }
