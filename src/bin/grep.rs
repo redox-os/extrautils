@@ -123,10 +123,12 @@ fn do_simple_search<T: BufRead>(reader: T, pattern: &str, flags: Flags) -> bool 
             }
             if is_match {
                 count += 1;
-                if flags.line_numbers {
-                    print!("{}: ", line_num + 1);
+                if !flags.count {
+                    if flags.line_numbers {
+                        print!("{}: ", line_num + 1);
+                    }
+                    println!("{}", line);
                 }
-                println!("{}", line);
             }
         }
     }
