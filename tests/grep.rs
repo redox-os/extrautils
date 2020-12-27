@@ -237,3 +237,15 @@ fn case_insensitive_match() {
         .stderr(predicate::str::is_empty())
         .stdout(predicate::str::similar("Foo\n"));
 }
+
+#[test]
+fn quiet_match() {
+    Command::cargo_bin("grep")
+        .expect("found binary")
+        .args(&["-q", "foo"])
+        .write_stdin("foo\n")
+        .assert()
+        .success()
+        .stderr(predicate::str::is_empty())
+        .stdout(predicate::str::is_empty());
+}

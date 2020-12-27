@@ -12,7 +12,7 @@ NAME
     grep - print lines matching a pattern
 
 SYNOPSIS
-    grep [--help] [-chHnv] PATTERN [FILE...]
+    grep [--help] [-chHinqv] PATTERN [FILE...]
 
 DESCRIPTION
     grep searches the named input FILEs for lines containing a match to the given PATTERN. If no
@@ -42,6 +42,10 @@ OPTIONS
     --line-number
         Prefix each line of output with the line number of the match.
 
+    -q
+    --quiet
+        Suppress normal output and stop searching as soon as a match is found.
+
     -v
     --invert-match
         Invert matching.
@@ -54,6 +58,7 @@ struct Flags {
     ignore_case: bool,
     invert_match: bool,
     line_numbers: bool,
+    quiet: bool,
 }
 
 impl Flags {
@@ -64,6 +69,7 @@ impl Flags {
             ignore_case: false,
             invert_match: false,
             line_numbers: false,
+            quiet: false,
         }
     }
 }
@@ -79,16 +85,17 @@ fn main() {
     for arg in args {
         if arg.starts_with('-') {
             match arg.as_str() {
+                "-c" | "--count" => flags.count = true,
+                "-H" | "--with-filename" => flags.filename_headers = Some(true),
+                "-h" | "--no-filename" => flags.filename_headers = Some(false),
                 "--help" => {
                     print!("{}", MAN_PAGE);
                     exit(0);
                 }
-                "-h" | "--no-filename" => flags.filename_headers = Some(false),
-                "-H" | "--with-filename" => flags.filename_headers = Some(true),
                 "-i" | "--ignore-case" => flags.ignore_case = true,
                 "-n" | "--line-number" => flags.line_numbers = true,
+                "-q" | "--quiet" => flags.quiet = true,
                 "-v" | "--invert-match" => flags.invert_match = true,
-                "-c" | "--count" => flags.count = true,
                 _ => {
                     eprintln!("Error, unknown option: {}", arg);
                     exit(2);
@@ -150,6 +157,9 @@ fn do_simple_search<T: BufRead>(reader: T, path: &str, pattern: &str, flags: Fla
                 is_match = !is_match
             }
             if is_match {
+                if flags.quiet {
+                    return true;
+                }
                 count += 1;
                 if !flags.count {
                     if flags.filename_headers.unwrap() {
@@ -164,7 +174,7 @@ fn do_simple_search<T: BufRead>(reader: T, path: &str, pattern: &str, flags: Fla
         }
     }
 
-    if flags.count {
+    if flags.count && !flags.quiet {
         if flags.filename_headers.unwrap() {
             print!("{}:", path);
         }
