@@ -34,6 +34,10 @@ OPTIONS
     --help
         Print this manual page.
 
+    -i
+    --ignore-case
+        Make matching case insensitive.
+
     -n
     --line-number
         Prefix each line of output with the line number of the match.
@@ -45,19 +49,21 @@ OPTIONS
 
 #[derive(Copy, Clone)]
 struct Flags {
-    line_numbers: bool,
-    invert_match: bool,
     count: bool,
     filename_headers: Option<bool>,
+    ignore_case: bool,
+    invert_match: bool,
+    line_numbers: bool,
 }
 
 impl Flags {
     fn new() -> Flags {
         Flags {
-            line_numbers: false,
-            invert_match: false,
             count: false,
             filename_headers: None,
+            ignore_case: false,
+            invert_match: false,
+            line_numbers: false,
         }
     }
 }
@@ -79,6 +85,7 @@ fn main() {
                 }
                 "-h" | "--no-filename" => flags.filename_headers = Some(false),
                 "-H" | "--with-filename" => flags.filename_headers = Some(true),
+                "-i" | "--ignore-case" => flags.ignore_case = true,
                 "-n" | "--line-number" => flags.line_numbers = true,
                 "-v" | "--invert-match" => flags.invert_match = true,
                 "-c" | "--count" => flags.count = true,
@@ -100,6 +107,9 @@ fn main() {
     }
     if flags.filename_headers == None {
         flags.filename_headers = Some(files.len() > 1);
+    }
+    if flags.ignore_case {
+        pattern = pattern.to_lowercase();
     }
 
     let mut found = false;
@@ -131,7 +141,11 @@ fn do_simple_search<T: BufRead>(reader: T, path: &str, pattern: &str, flags: Fla
     let mut count = 0;
     for (line_num, result) in reader.lines().enumerate() {
         if let Ok(line) = result {
-            let mut is_match = line.contains(pattern);
+            let mut is_match = if flags.ignore_case {
+                line.to_lowercase().contains(pattern)
+            } else {
+                line.contains(pattern)
+            };
             if flags.invert_match {
                 is_match = !is_match
             }

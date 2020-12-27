@@ -225,3 +225,15 @@ fn headers_on_counts() {
         .stderr(predicate::str::is_empty())
         .stdout(predicate::str::similar(expected));
 }
+
+#[test]
+fn case_insensitive_match() {
+    Command::cargo_bin("grep")
+        .expect("found binary")
+        .args(&["-i", "foo"])
+        .write_stdin("Foo\n")
+        .assert()
+        .success()
+        .stderr(predicate::str::is_empty())
+        .stdout(predicate::str::similar("Foo\n"));
+}
