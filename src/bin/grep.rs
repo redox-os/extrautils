@@ -14,7 +14,7 @@ NAME
     grep - print lines matching a pattern
 
 SYNOPSIS
-    grep [--help] [-chHinqv] PATTERN [FILE...]
+    grep [--help] [-chHinqv] [-m NUM] PATTERN [FILE...]
 
 DESCRIPTION
     grep searches the named input FILEs for lines containing a match to the given PATTERN. If no
@@ -40,6 +40,10 @@ OPTIONS
     --ignore-case
         Make matching case insensitive.
 
+    -m NUM
+    --max-count=NUM
+        Stop searching after NUM matches.
+
     -n
     --line-number
         Prefix each line of output with the line number of the match.
@@ -62,6 +66,7 @@ struct Flags {
     quiet: bool,
     with_filenames: bool,
     without_filenames: bool,
+    max_count: Option<u32>,
 }
 
 impl Flags {
@@ -74,6 +79,7 @@ impl Flags {
             quiet: false,
             with_filenames: false,
             without_filenames: false,
+            max_count: None,
         }
     }
 }
@@ -91,7 +97,8 @@ fn main() {
         .add_flag(&["i", "ignore-case"])
         .add_flag(&["n", "line-number"])
         .add_flag(&["q", "quiet"])
-        .add_flag(&["v", "invert-match"]);
+        .add_flag(&["v", "invert-match"])
+        .add_opt("m", "max-count");
     parser.parse(env::args());
 
     if parser.found("help") {
@@ -105,6 +112,17 @@ fn main() {
     flags.line_numbers |= parser.found("line-number");
     flags.quiet |= parser.found("quiet");
     flags.invert_match |= parser.found("invert-match");
+
+    if let Some(mstr) = parser.get_opt("max-count") {
+        flags.max_count = match mstr.parse::<u32>() {
+            Ok(0) => exit(1),
+            Ok(m) => Some(m),
+            Err(e) => {
+                eprintln!("Invalid max count {}: {}", mstr, e);
+                exit(2);
+            }
+        };
+    }
 
     if let Err(e) = parser.found_invalid() {
         eprint!("{}", e);
@@ -182,6 +200,11 @@ fn do_simple_search<T: BufRead>(reader: T, path: &str, pattern: &str, flags: Fla
                         print!("{}:", line_num + 1);
                     }
                     println!("{}", line);
+                }
+                if let Some(m) = flags.max_count {
+                    if count >= m {
+                        break;
+                    }
                 }
             }
         }

@@ -260,3 +260,15 @@ fn quiet_match() {
         .stderr(predicate::str::is_empty())
         .stdout(predicate::str::is_empty());
 }
+
+#[test]
+fn max_count() {
+    Command::cargo_bin("grep")
+        .expect("found binary")
+        .args(&["-cm2", "some"])
+        .write_stdin(SAMPLE_FILE)
+        .assert()
+        .success()
+        .stderr(predicate::str::is_empty())
+        .stdout(predicate::str::similar("2\n"));
+}
