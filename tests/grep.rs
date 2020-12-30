@@ -33,6 +33,17 @@ fn no_args() {
 }
 
 #[test]
+fn invalid_flag() {
+    Command::cargo_bin("grep")
+        .expect("found binary")
+        .args(&["--does-not-exist", "validpattern"])
+        .assert()
+        .code(2)
+        .stderr(predicate::str::is_empty().not())
+        .stdout(predicate::str::is_empty());
+}
+
+#[test]
 fn help() {
     Command::cargo_bin("grep")
         .expect("found binary")

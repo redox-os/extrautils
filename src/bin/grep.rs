@@ -1,5 +1,7 @@
+extern crate arg_parser;
 extern crate extra;
 
+use arg_parser::ArgParser;
 use std::env;
 use std::fs::File;
 use std::io;
@@ -54,66 +56,77 @@ OPTIONS
 #[derive(Copy, Clone)]
 struct Flags {
     count: bool,
-    filename_headers: Option<bool>,
     ignore_case: bool,
     invert_match: bool,
     line_numbers: bool,
     quiet: bool,
+    with_filenames: bool,
+    without_filenames: bool,
 }
 
 impl Flags {
     fn new() -> Flags {
         Flags {
             count: false,
-            filename_headers: None,
             ignore_case: false,
             invert_match: false,
             line_numbers: false,
             quiet: false,
+            with_filenames: false,
+            without_filenames: false,
         }
     }
 }
 
 fn main() {
-    let args = env::args().skip(1);
     let stdin = io::stdin();
     let stdin = stdin.lock();
 
     let mut flags = Flags::new();
-    let mut pattern = String::new();
-    let mut files = Vec::with_capacity(args.len());
-    for arg in args {
-        if arg.starts_with('-') {
-            match arg.as_str() {
-                "-c" | "--count" => flags.count = true,
-                "-H" | "--with-filename" => flags.filename_headers = Some(true),
-                "-h" | "--no-filename" => flags.filename_headers = Some(false),
-                "--help" => {
-                    print!("{}", MAN_PAGE);
-                    exit(0);
-                }
-                "-i" | "--ignore-case" => flags.ignore_case = true,
-                "-n" | "--line-number" => flags.line_numbers = true,
-                "-q" | "--quiet" => flags.quiet = true,
-                "-v" | "--invert-match" => flags.invert_match = true,
-                _ => {
-                    eprintln!("Error, unknown option: {}", arg);
-                    exit(2);
-                }
-            }
-        } else if pattern.is_empty() {
-            pattern = arg.clone();
-        } else {
-            files.push(arg)
-        }
-    }
+    let mut parser = ArgParser::new(8)
+        .add_flag(&["help"])
+        .add_flag(&["c", "count"])
+        .add_flag(&["H", "with-filename"])
+        .add_flag(&["h", "no-filename"])
+        .add_flag(&["i", "ignore-case"])
+        .add_flag(&["n", "line-number"])
+        .add_flag(&["q", "quiet"])
+        .add_flag(&["v", "invert-match"]);
+    parser.parse(env::args());
 
-    if pattern.is_empty() {
+    if parser.found("help") {
+        print!("{}", MAN_PAGE);
+        exit(0);
+    }
+    flags.count |= parser.found("count");
+    flags.with_filenames |= parser.found("with-filename");
+    flags.without_filenames |= parser.found("no-filename");
+    flags.ignore_case |= parser.found("ignore-case");
+    flags.line_numbers |= parser.found("line-number");
+    flags.quiet |= parser.found("quiet");
+    flags.invert_match |= parser.found("invert-match");
+
+    if let Err(e) = parser.found_invalid() {
+        eprint!("{}", e);
+        exit(2);
+    }
+    if parser.args.len() < 1 {
         eprintln!("You must provide a pattern");
         exit(2);
     }
-    if flags.filename_headers == None {
-        flags.filename_headers = Some(files.len() > 1);
+
+    let mut pattern = parser.args[0].clone();
+    let files = &parser.args[1..];
+
+    if !flags.without_filenames && files.len() > 1 {
+        flags.with_filenames = true;
+    } else if flags.with_filenames && flags.without_filenames {
+        // FIXME: Unfortunately, with ArgParser we don't have a way to tell
+        // which order flags were received in. If a user has, say, an alias
+        // like `grep -H` but then runs `grep -h` at the command line, we see
+        // `grep -H -h` but can't distinguish it from `grep -h -H`. The last
+        // flag should win, since that's clearly the user's intent.
+        eprintln!("{}", "WARNING: filename flag overrides not yet supported");
     }
     if flags.ignore_case {
         pattern = pattern.to_lowercase();
@@ -162,7 +175,7 @@ fn do_simple_search<T: BufRead>(reader: T, path: &str, pattern: &str, flags: Fla
                 }
                 count += 1;
                 if !flags.count {
-                    if flags.filename_headers.unwrap() {
+                    if flags.with_filenames {
                         print!("{}:", path);
                     }
                     if flags.line_numbers {
@@ -175,7 +188,7 @@ fn do_simple_search<T: BufRead>(reader: T, path: &str, pattern: &str, flags: Fla
     }
 
     if flags.count && !flags.quiet {
-        if flags.filename_headers.unwrap() {
+        if flags.with_filenames {
             print!("{}:", path);
         }
         println!("{}", count);

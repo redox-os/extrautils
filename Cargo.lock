@@ -22,6 +22,11 @@ dependencies = [
 ]
 
 [[package]]
+name = "arg_parser"
+version = "0.1.0"
+source = "git+https://gitlab.redox-os.org/redox-os/arg-parser.git#1c434b55f3e1a0375ebcca85b3e88db7378e82fa"
+
+[[package]]
 name = "assert_cmd"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -118,6 +123,7 @@ source = "git+https://gitlab.redox-os.org/redox-os/libextra.git#0b50f3f2127fa62b
 name = "extrautils"
 version = "0.1.0"
 dependencies = [
+ "arg_parser",
  "assert_cmd",
  "bzip2",
  "extra",
