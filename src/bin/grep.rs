@@ -128,7 +128,7 @@ fn main() {
         eprint!("{}", e);
         exit(2);
     }
-    if parser.args.len() < 1 {
+    if parser.args.is_empty() {
         eprintln!("You must provide a pattern");
         exit(2);
     }
@@ -144,7 +144,7 @@ fn main() {
         // like `grep -H` but then runs `grep -h` at the command line, we see
         // `grep -H -h` but can't distinguish it from `grep -h -H`. The last
         // flag should win, since that's clearly the user's intent.
-        eprintln!("{}", "WARNING: filename flag overrides not yet supported");
+        eprintln!("WARNING: filename flag overrides not yet supported");
     }
     if flags.ignore_case {
         pattern = pattern.to_lowercase();
@@ -217,5 +217,5 @@ fn do_simple_search<T: BufRead>(reader: T, path: &str, pattern: &str, flags: Fla
         println!("{}", count);
     }
 
-    return count > 0;
+    count > 0
 }
