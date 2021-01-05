@@ -480,8 +480,16 @@ mod test {
     #[test]
     fn functions() {
         assert_eq!(tokenize("signum(-42)").and_then(parse).unwrap(), "-1");
-        assert_eq!(tokenize("copysign(-123, 3)").and_then(parse).unwrap(), "123");
-        assert_eq!(tokenize("min(5, max(3, 9))+trunc(9.1)").and_then(parse).unwrap(), "14");
+        assert_eq!(
+            tokenize("copysign(-123, 3)").and_then(parse).unwrap(),
+            "123"
+        );
+        assert_eq!(
+            tokenize("min(5, max(3, 9))+trunc(9.1)")
+                .and_then(parse)
+                .unwrap(),
+            "14"
+        );
     }
 }
 
