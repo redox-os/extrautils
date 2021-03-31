@@ -101,7 +101,7 @@ fn extract_inner<T: Read>(ar: &mut Archive<T>, verbose: bool, strip: usize) -> R
                             .write(true)
                             .truncate(true)
                             .create(true)
-                            .mode(entry.header().mode().unwrap_or(644))
+                            .mode(entry.header().mode().unwrap_or(0o644))
                             .open(&path)?
                     };
                     copy(&mut entry, &mut file)?;
