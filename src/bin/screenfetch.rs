@@ -1,3 +1,4 @@
+#[cfg(target_arch = "x86_64")]
 extern crate raw_cpuid;
 extern crate syscall;
 
@@ -89,6 +90,7 @@ fn main() {
     }
 
     let mut cpu = String::new();
+    #[cfg(target_arch = "x86_64")]
     {
         let cpuid = raw_cpuid::CpuId::new();
         if let Some(info) = cpuid.get_extended_function_info() {

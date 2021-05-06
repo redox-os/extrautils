@@ -107,7 +107,7 @@ fn extract_inner<T: Read>(ar: &mut Archive<T>, verbose: bool, strip: usize) -> R
                     copy(&mut entry, &mut file)?;
                 }
                 if let Ok(mtime) = entry.header().mtime() {
-                    let mtime = FileTime::from_seconds_since_1970(mtime, 0);
+                    let mtime = FileTime::from_unix_time(mtime as i64, 0);
                     filetime::set_file_times(&path, mtime, mtime)?;
                 }
             }
@@ -140,7 +140,7 @@ fn extract(tar: &Path, verbose: bool, strip: usize) -> Result<()> {
     } else {
         let mime = tree_magic::from_filepath(Path::new(&tar));
         let file = BufReader::new(File::open(tar)?);
-        if mime == "application/x-xz" {
+        if mime == Some("application/x-xz".to_string()) {
             extract_inner(
                 &mut Archive::new(
                     LzmaReader::new_decompressor(file)
@@ -149,7 +149,7 @@ fn extract(tar: &Path, verbose: bool, strip: usize) -> Result<()> {
                 verbose,
                 strip,
             )
-        } else if mime == "application/gzip" {
+        } else if mime == Some("application/gzip".to_string()) {
             extract_inner(
                 &mut Archive::new(
                     GzipDecoder::new(file).map_err(|e| Error::new(ErrorKind::Other, e))?,
@@ -157,7 +157,7 @@ fn extract(tar: &Path, verbose: bool, strip: usize) -> Result<()> {
                 verbose,
                 strip,
             )
-        } else if mime == "application/x-bzip" {
+        } else if mime == Some("application/x-bzip".to_string()) {
             extract_inner(&mut Archive::new(BzDecoder::new(file)), verbose, strip)
         } else {
             extract_inner(&mut Archive::new(file), verbose, strip)
