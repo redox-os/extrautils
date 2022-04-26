@@ -3,7 +3,7 @@ extern crate raw_cpuid;
 extern crate syscall;
 
 use std::env;
-use std::fs::File;
+use std::fs::{self, File};
 use std::io::Read;
 use std::path::Path;
 
@@ -14,11 +14,56 @@ const SECONDS_PER_MINUTE: i64 = 60;
 const SECONDS_PER_HOUR: i64 = 3600;
 const SECONDS_PER_DAY: i64 = 86400;
 
+const KIB: u64 = 1024;
+const MIB: u64 = 1024 * KIB;
+const GIB: u64 = 1024 * MIB;
+const TIB: u64 = 1024 * GIB;
+
+fn format_size(size: u64) -> String {
+    if size >= 4 * TIB {
+        format!("{:.1} TiB", size as f64 / TIB as f64)
+    } else if size >= GIB {
+        format!("{:.1} GiB", size as f64 / GIB as f64)
+    } else if size >= MIB {
+        format!("{:.1} MiB", size as f64 / MIB as f64)
+    } else if size >= KIB {
+        format!("{:.1} KiB", size as f64 / KIB as f64)
+    } else {
+        format!("{} B", size)
+    }
+}
+
 fn main() {
     let user = env::var("USER").unwrap_or_default();
     let mut hostname = String::new();
     if let Ok(mut file) = File::open("file:/etc/hostname") {
         let _ = file.read_to_string(&mut hostname);
+    }
+
+    let redox_release = match fs::read_to_string("/etc/redox-release") {
+        Ok(ok) => ok,
+        Err(err) => {
+            eprintln!("error: failed to read /etc/redox-release: {}", err);
+            "(unknown release)".to_string()
+        }
+    };
+
+    let mut kernel = String::new();
+    match fs::read_to_string("sys:uname") {
+        Ok(uname) => for line in uname.lines() {
+            if line.is_empty() {
+                continue;
+            }
+
+            if ! kernel.is_empty() {
+                kernel.push(' ');
+            }
+
+            kernel.push_str(line);
+        },
+        Err(err) => {
+            eprintln!("error: failed to read sys:uname: {}", err);
+        }
     }
 
     let mut uptime_str = String::new();
@@ -109,9 +154,29 @@ fn main() {
                 let used = (stat.f_blocks - stat.f_bfree) * stat.f_bsize as u64;
 
                 ram = format!(
-                    "{}MB / {}MB",
-                    (used + 1_048_575) / 1_048_576,
-                    (size + 1_048_575) / 1_048_576
+                    "{} / {} ({}%)",
+                    format_size(used),
+                    format_size(size),
+                    used * 100 / size
+                );
+            }
+            let _ = syscall::close(fd);
+        }
+    }
+
+    let mut disk = String::new();
+    {
+        let mut stat = syscall::StatVfs::default();
+        if let Ok(fd) = syscall::open("file:", syscall::O_STAT) {
+            if syscall::fstatvfs(fd, &mut stat).is_ok() {
+                let size = stat.f_blocks * stat.f_bsize as u64;
+                let used = (stat.f_blocks - stat.f_bfree) * stat.f_bsize as u64;
+
+                disk = format!(
+                    "{} / {} ({}%)",
+                    format_size(used),
+                    format_size(size),
+                    used * 100 / size
                 );
             }
             let _ = syscall::close(fd);
@@ -144,16 +209,16 @@ fn main() {
     const E: &str = "\x1B[0m"; // end
     let right = [
         format!("{}{}{}@{}{}{}", S, user, E, S, hostname.trim(), E),
-        format!("{}OS:         {}redox-os", S, E),
-        format!("{}Kernel:     {}redox", S, E),
+        format!("{}OS:         {}Redox OS {}", S, E, redox_release),
+        format!("{}Kernel:     {}{}", S, E, kernel),
         format!("{}Uptime:     {}{}", S, E, uptime_str),
         format!("{}Shell:      {}{}", S, E, shell),
         format!("{}Resolution: {}{}x{}", S, E, width, height),
         format!("{}DE:         {}orbital", S, E),
         format!("{}WM:         {}orbital", S, E),
-        format!("{}Font:       {}unifont", S, E),
         format!("{}CPU:        {}{}", S, E, cpu),
         format!("{}RAM:        {}{}", S, E, ram),
+        format!("{}Disk:       {}{}", S, E, disk),
     ];
 
     for (i, line) in left.iter().enumerate() {
