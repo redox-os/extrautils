@@ -136,7 +136,7 @@ fn main() {
     }
 
     let mut cpu = String::new();
-    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+    #[cfg(target_arch = "x86")]
     {
         let cpuid = raw_cpuid::CpuId::with_cpuid_fn(|a, c| {
             let result = unsafe { core::arch::x86::__cpuid_count(a, c) };
@@ -147,6 +147,13 @@ fn main() {
                 edx: result.edx,
             }
         });
+        if let Some(brand) = cpuid.get_processor_brand_string() {
+            cpu = brand.as_str().to_string();
+        }
+    }
+    #[cfg(target_arch = "x86_64")]
+    {
+        let cpuid = raw_cpuid::CpuId::new();
         if let Some(brand) = cpuid.get_processor_brand_string() {
             cpu = brand.as_str().to_string();
         }
