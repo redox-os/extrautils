@@ -94,8 +94,8 @@ assert_cmd = "1"
 predicates = "1"
 tempfile = "3"
 
-[target.'cfg(target_arch = "x86_64")'.dependencies]
-raw-cpuid = "8.1"
+[target.'cfg(any(target_arch = "x86", target_arch = "x86_64"))'.dependencies]
+raw-cpuid = "10.2.0"
 
 [patch.crates-io]
 filetime = { git = "https://gitlab.redox-os.org/redox-os/filetime", branch = "redox" }

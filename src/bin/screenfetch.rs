@@ -1,4 +1,4 @@
-#[cfg(target_arch = "x86_64")]
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 extern crate raw_cpuid;
 extern crate syscall;
 
@@ -18,6 +18,7 @@ const KIB: u64 = 1024;
 const MIB: u64 = 1024 * KIB;
 const GIB: u64 = 1024 * MIB;
 const TIB: u64 = 1024 * GIB;
+
 
 fn format_size(size: u64) -> String {
     if size >= 4 * TIB {
@@ -135,13 +136,19 @@ fn main() {
     }
 
     let mut cpu = String::new();
-    #[cfg(target_arch = "x86_64")]
+    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
     {
-        let cpuid = raw_cpuid::CpuId::new();
-        if let Some(info) = cpuid.get_extended_function_info() {
-            if let Some(brand) = info.processor_brand_string() {
-                cpu = brand.trim().to_string();
+        let cpuid = raw_cpuid::CpuId::with_cpuid_fn(|a, c| {
+            let result = unsafe { core::arch::x86::__cpuid_count(a, c) };
+            raw_cpuid::CpuIdResult {
+                eax: result.eax,
+                ebx: result.ebx,
+                ecx: result.ecx,
+                edx: result.edx,
             }
+        });
+        if let Some(brand) = cpuid.get_processor_brand_string() {
+            cpu = brand.as_str().to_string();
         }
     }
 
