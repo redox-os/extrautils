@@ -86,7 +86,7 @@ filetime = { git = "https://gitlab.redox-os.org/redox-os/filetime.git", branch =
 termion = "1.5.1"
 rust-lzma = "0.5"
 tree_magic = { git = "https://github.com/aahancoc/tree_magic.git", rev = "56fd014b4e4aefea7d1e37d4216595624511cefc" }
-bzip2 = "0.3"
+bzip2 = "0.4"
 zip = "0.3"
 
 [dev-dependencies]

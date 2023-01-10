@@ -76,6 +76,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "bzip2"
+version = "0.4.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bdb116a6ef3f6c3698828873ad02c3014b3c85cadb88496095628e3ef1e347f8"
+dependencies = [
+ "bzip2-sys",
+ "libc",
+]
+
+[[package]]
 name = "bzip2-sys"
 version = "0.1.11+1.0.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -142,7 +152,7 @@ version = "0.1.0"
 dependencies = [
  "arg_parser",
  "assert_cmd",
- "bzip2",
+ "bzip2 0.4.4",
  "extra",
  "filetime",
  "libflate",
@@ -599,7 +609,7 @@ version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "77ce0ceee93c995954a31f77903925a6a8bb094709445238e344f2107910e29e"
 dependencies = [
- "bzip2",
+ "bzip2 0.3.3",
  "flate2",
  "msdos_time",
  "podio",
