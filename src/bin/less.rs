@@ -88,6 +88,7 @@ fn run<W: IntoRawMode>(
 ) -> std::io::Result<()> {
     let mut string = String::new();
     file.read_to_string(&mut string)?;
+    let string2 = string.replace('\x1B', "?");
 
-    pager::start(controls, stdout, path, &string)
+    pager::start(controls, stdout, path, &string2)
 }
