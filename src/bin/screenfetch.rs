@@ -1,6 +1,6 @@
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 extern crate raw_cpuid;
-extern crate syscall;
+extern crate libredox;
 
 use std::env;
 use std::fs::{self, File};
@@ -9,6 +9,8 @@ use std::path::Path;
 
 // std::fmt::Write conflicts with std::io::Write, hence the alias
 use std::fmt::Write as FmtWrite;
+
+use libredox::Fd;
 
 const SECONDS_PER_MINUTE: i64 = 60;
 const SECONDS_PER_HOUR: i64 = 3600;
@@ -69,8 +71,7 @@ fn main() {
 
     let mut uptime_str = String::new();
 
-    let mut ts = syscall::TimeSpec::default();
-    if syscall::clock_gettime(syscall::CLOCK_MONOTONIC, &mut ts).is_ok() {
+    if let Ok(ts) = libredox::call::clock_gettime(libredox::flag::CLOCK_MONOTONIC) {
         let uptime = ts.tv_sec;
         let uptime_secs = uptime % 60;
         let uptime_mins = (uptime / SECONDS_PER_MINUTE) % 60;
@@ -113,9 +114,9 @@ fn main() {
     let mut width = 0;
     let mut height = 0;
     if let Ok(display_name) = env::var("DISPLAY") {
-        if let Ok(display) = syscall::open(&display_name, syscall::O_STAT) {
+        if let Ok(display) = Fd::open(&display_name, libredox::flag::O_PATH, 0) {
             let mut buf: [u8; 4096] = [0; 4096];
-            if let Ok(count) = syscall::fpath(display, &mut buf) {
+            if let Ok(count) = display.fpath(&mut buf) {
                 let path = unsafe { String::from_utf8_unchecked(Vec::from(&buf[..count])) };
                 let res = path.split(':').nth(1).unwrap_or("");
                 width = res
@@ -131,7 +132,6 @@ fn main() {
                     .parse::<i32>()
                     .unwrap_or(0);
             }
-            let _ = syscall::close(display);
         }
     }
 
@@ -161,9 +161,8 @@ fn main() {
 
     let mut ram = String::new();
     {
-        let mut stat = syscall::StatVfs::default();
-        if let Ok(fd) = syscall::open("memory:", syscall::O_STAT) {
-            if syscall::fstatvfs(fd, &mut stat).is_ok() {
+        if let Ok(fd) = Fd::open("memory:", libredox::flag::O_PATH, 0) {
+            if let Ok(stat) = fd.statvfs() {
                 let size = stat.f_blocks * stat.f_bsize as u64;
                 let used = (stat.f_blocks - stat.f_bfree) * stat.f_bsize as u64;
 
@@ -174,15 +173,13 @@ fn main() {
                     used * 100 / size
                 );
             }
-            let _ = syscall::close(fd);
         }
     }
 
     let mut disk = String::new();
     {
-        let mut stat = syscall::StatVfs::default();
-        if let Ok(fd) = syscall::open("file:", syscall::O_STAT) {
-            if syscall::fstatvfs(fd, &mut stat).is_ok() {
+        if let Ok(fd) = Fd::open("file:", libredox::flag::O_PATH, 0) {
+            if let Ok(stat) = fd.statvfs() {
                 let size = stat.f_blocks * stat.f_bsize as u64;
                 let used = (stat.f_blocks - stat.f_bfree) * stat.f_bsize as u64;
 
@@ -193,7 +190,6 @@ fn main() {
                     used * 100 / size
                 );
             }
-            let _ = syscall::close(fd);
         }
     }
 
