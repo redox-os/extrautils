@@ -80,10 +80,10 @@ arg_parser = { git = "https://gitlab.redox-os.org/redox-os/arg-parser.git" }
 extra = { git = "https://gitlab.redox-os.org/redox-os/libextra.git" }
 libflate = "0.1.4"
 pager = { git = "https://gitlab.redox-os.org/redox-os/libpager.git" }
-redox_syscall = "0.2.12"
+libredox = "0.1"
 tar = { version = "0.4.27", default-features = false }
-filetime = { git = "https://gitlab.redox-os.org/redox-os/filetime.git", branch = "redox" }
-termion = "1.5.1"
+filetime = { git = "https://gitlab.redox-os.org/redox-os/filetime.git" }
+termion = "3"
 rust-lzma = "0.5"
 tree_magic = { git = "https://github.com/aahancoc/tree_magic.git", rev = "56fd014b4e4aefea7d1e37d4216595624511cefc" }
 bzip2 = "0.3"
