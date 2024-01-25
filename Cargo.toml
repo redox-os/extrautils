@@ -79,6 +79,7 @@ path = "src/bin/watch.rs"
 arg_parser = { git = "https://gitlab.redox-os.org/redox-os/arg-parser.git" }
 extra = { git = "https://gitlab.redox-os.org/redox-os/libextra.git" }
 libflate = "0.1.4"
+os-release = "0.1.0"
 pager = { git = "https://gitlab.redox-os.org/redox-os/libpager.git" }
 libredox = "0.1"
 tar = { version = "0.4.27", default-features = false }

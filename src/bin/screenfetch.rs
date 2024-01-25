@@ -43,10 +43,10 @@ fn main() {
         let _ = file.read_to_string(&mut hostname);
     }
 
-    let redox_release = match fs::read_to_string("/etc/redox-release") {
-        Ok(ok) => ok,
+    let os_pretty_name = match os_release::OsRelease::new() {
+        Ok(ok) => ok.pretty_name,
         Err(err) => {
-            eprintln!("error: failed to read /etc/redox-release: {}", err);
+            eprintln!("error: failed to read /etc/os-release: {}", err);
             "(unknown release)".to_string()
         }
     };
@@ -219,7 +219,7 @@ fn main() {
     const E: &str = "\x1B[0m"; // end
     let right = [
         format!("{}{}{}@{}{}{}", S, user, E, S, hostname.trim(), E),
-        format!("{}OS:         {}Redox OS {}", S, E, redox_release),
+        format!("{}OS:         {}{}", S, E, os_pretty_name),
         format!("{}Kernel:     {}{}", S, E, kernel),
         format!("{}Uptime:     {}{}", S, E, uptime_str),
         format!("{}Shell:      {}{}", S, E, shell),
