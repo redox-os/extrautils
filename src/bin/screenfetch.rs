@@ -163,8 +163,8 @@ fn main() {
     {
         if let Ok(fd) = Fd::open("memory:", libredox::flag::O_PATH, 0) {
             if let Ok(stat) = fd.statvfs() {
-                let size = stat.f_blocks * stat.f_bsize as u64;
-                let used = (stat.f_blocks - stat.f_bfree) * stat.f_bsize as u64;
+                let size = stat.f_blocks as u64 * stat.f_bsize as u64;
+                let used = (stat.f_blocks as u64 - stat.f_bfree as u64) * stat.f_bsize as u64;
 
                 ram = format!(
                     "{} / {} ({}%)",
@@ -180,8 +180,8 @@ fn main() {
     {
         if let Ok(fd) = Fd::open("file:", libredox::flag::O_PATH, 0) {
             if let Ok(stat) = fd.statvfs() {
-                let size = stat.f_blocks * stat.f_bsize as u64;
-                let used = (stat.f_blocks - stat.f_bfree) * stat.f_bsize as u64;
+                let size = stat.f_blocks as u64 * stat.f_bsize as u64;
+                let used = (stat.f_blocks as u64 - stat.f_bfree as u64) * stat.f_bsize as u64;
 
                 disk = format!(
                     "{} / {} ({}%)",
