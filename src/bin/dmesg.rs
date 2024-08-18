@@ -36,7 +36,7 @@ fn main() {
     }
 
     Command::new("less")
-        .arg("sys:/log")
+        .arg("/scheme/sys/log")
         .spawn()
         .unwrap()
         .wait()

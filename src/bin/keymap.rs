@@ -52,7 +52,7 @@ fn main() {
         arg
     };
 
-    match File::open("display:keymap") {
+    match File::open("/scheme/display/keymap") {
         Ok(mut file) => {
             if let Err(e) = file.write(path.as_bytes()) {
                 eprintln!("keymap: could not change keymap: {}", e);
