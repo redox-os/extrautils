@@ -39,7 +39,7 @@ fn format_size(size: u64) -> String {
 fn main() {
     let user = env::var("USER").unwrap_or_default();
     let mut hostname = String::new();
-    if let Ok(mut file) = File::open("file:/etc/hostname") {
+    if let Ok(mut file) = File::open("/etc/hostname") {
         let _ = file.read_to_string(&mut hostname);
     }
 
@@ -52,7 +52,7 @@ fn main() {
     };
 
     let mut kernel = String::new();
-    match fs::read_to_string("sys:uname") {
+    match fs::read_to_string("/scheme/sys/uname") {
         Ok(uname) => for line in uname.lines() {
             if line.is_empty() {
                 continue;
@@ -65,7 +65,7 @@ fn main() {
             kernel.push_str(line);
         },
         Err(err) => {
-            eprintln!("error: failed to read sys:uname: {}", err);
+            eprintln!("error: failed to read /scheme/sys/uname: {}", err);
         }
     }
 
@@ -161,7 +161,7 @@ fn main() {
 
     let mut ram = String::new();
     {
-        if let Ok(fd) = Fd::open("memory:", libredox::flag::O_PATH, 0) {
+        if let Ok(fd) = Fd::open("/scheme/memory", libredox::flag::O_PATH, 0) {
             if let Ok(stat) = fd.statvfs() {
                 let size = stat.f_blocks as u64 * stat.f_bsize as u64;
                 let used = (stat.f_blocks as u64 - stat.f_bfree as u64) * stat.f_bsize as u64;
@@ -178,7 +178,7 @@ fn main() {
 
     let mut disk = String::new();
     {
-        if let Ok(fd) = Fd::open("file:", libredox::flag::O_PATH, 0) {
+        if let Ok(fd) = Fd::open("/", libredox::flag::O_PATH, 0) {
             if let Ok(stat) = fd.statvfs() {
                 let size = stat.f_blocks as u64 * stat.f_bsize as u64;
                 let used = (stat.f_blocks as u64 - stat.f_bfree as u64) * stat.f_bsize as u64;
