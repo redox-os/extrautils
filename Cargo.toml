@@ -84,8 +84,8 @@ pager = { git = "https://gitlab.redox-os.org/redox-os/libpager.git" }
 libredox = "0.1"
 tar = { version = "0.4.27", default-features = false }
 filetime = { git = "https://github.com/jackpot51/filetime.git" }
-termion = "3"
-rust-lzma = "0.5"
+termion = "4"
+rust-lzma = {version = "0.6", features = ["static"]}
 tree_magic = { git = "https://github.com/aahancoc/tree_magic.git", rev = "56fd014b4e4aefea7d1e37d4216595624511cefc" }
 bzip2 = "0.3"
 zip = "0.3"
@@ -100,3 +100,4 @@ raw-cpuid = "10.2.0"
 
 [patch.crates-io]
 filetime = { git = "https://github.com/jackpot51/filetime.git" }
+cc-11 = { git = "https://github.com/tea/cc-rs", branch="riscv-abi-arch-fix", package = "cc" }
