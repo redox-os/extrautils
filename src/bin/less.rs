@@ -15,7 +15,7 @@ NAME
     less - view a text file.
 
 SYNOPSIS
-    less [-h | --help] [input]
+    less [-h | --help] [-r] [input]
 
 DESCRIPTION
     This utility views text files. If no input file is specified as an argument, standard input is
@@ -24,6 +24,8 @@ DESCRIPTION
 OPTIONS
     --help, -h
         Print this manual page.
+    -r
+        Display escape sequences as-is
 
 AUTHOR
     This program was written by MovingtoMars and Ticki for Redox OS. Bugs, issues, or feature
@@ -53,22 +55,37 @@ fn main() {
     let stdin = io::stdin();
     let mut stdin = stdin.lock();
     let mut stderr = io::stderr();
+    let mut raw = false;
 
     if let Some(x) = args.peek() {
         if x == "--help" || x == "-h" {
             print!("{}", MAN_PAGE);
             return;
+        } else if x == "-r" {
+            raw = true;
+            args.next();
         }
-    } else {
+    }
+
+    let stdout = io::stdout();
+    let mut stdout = stdout.lock();
+
+    if args.peek().is_none() {
         let mut terminal = termion::get_tty().try(&mut stderr);
-        run("-", &mut stdin, &mut terminal, io::stdout()).try(&mut stderr);
-    };
+        run("-", &mut stdin, &mut terminal, &mut stdout, raw).try(&mut stderr);
+    }
 
     for filename in args {
         let file = File::open(Path::new(filename.as_str()));
         match file {
             Ok(mut open_file) => {
-                if let Err(err) = run(filename.as_str(), &mut open_file, &mut stdin, io::stdout()) {
+                if let Err(err) = run(
+                    filename.as_str(),
+                    &mut open_file,
+                    &mut stdin,
+                    &mut stdout,
+                    raw,
+                ) {
                     eprintln!("{}: {}", filename, err);
                 }
             }
@@ -85,10 +102,14 @@ fn run<W: IntoRawMode>(
     file: &mut dyn Read,
     controls: &mut dyn Read,
     stdout: W,
+    raw: bool,
 ) -> std::io::Result<()> {
     let mut string = String::new();
     file.read_to_string(&mut string)?;
-    let string2 = string.replace('\x1B', "?");
-
-    pager::start(controls, stdout, path, &string2)
+    let string = if raw {
+        string
+    } else {
+        string.replace('\x1B', "?")
+    };
+    pager::start(controls, stdout, path, &string)
 }

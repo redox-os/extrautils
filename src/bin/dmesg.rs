@@ -2,6 +2,7 @@ extern crate extra;
 
 use std::env;
 use std::io::{stderr, stdout, Write};
+use std::os::unix::process::CommandExt;
 use std::process::{exit, Command};
 
 use extra::option::OptionalExt;
@@ -29,16 +30,12 @@ fn main() {
 
     for arg in env::args().skip(1) {
         if arg.as_str() == "-h" || arg.as_str() == "--help" {
-            print!("{}", MAN_PAGE);
+            write!(&mut stdout, "{}", MAN_PAGE).unwrap();
             stdout.flush().try(&mut stderr);
             exit(0);
         }
     }
 
-    Command::new("less")
-        .arg("/scheme/sys/log")
-        .spawn()
-        .unwrap()
-        .wait()
-        .unwrap();
+    let err = Command::new("less").arg("-r").arg("/scheme/sys/log").exec();
+    panic!("unable to run 'less': {}", err);
 }
