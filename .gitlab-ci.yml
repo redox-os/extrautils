@@ -1,0 +1,19 @@
+image: "redoxos/redoxer"
+
+stages:
+  - host
+  - build
+
+fmt:
+  stage: host
+  script:
+      - rustup component add rustfmt
+      - rustfmt --check
+
+build:redox:
+  stage: build
+  before_script:
+    - apt-get update
+    - apt-get install liblzma-dev -y
+  script:
+    - redoxer build --bins
