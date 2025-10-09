@@ -12,8 +12,6 @@ fmt:
 
 build:redox:
   stage: build
-  before_script:
-    - apt-get update
-    - apt-get install liblzma-dev -y
   script:
+    - redoxer pkg xz
     - redoxer build --bins
