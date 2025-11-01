@@ -3,10 +3,9 @@ extern crate filetime;
 extern crate libflate;
 extern crate lzma;
 extern crate tar;
-extern crate tree_magic;
 
 use std::fs::{self, File};
-use std::io::{copy, stdin, stdout, BufReader, Error, ErrorKind, Read, Result, Write};
+use std::io::{copy, stdin, stdout, BufReader, Error, ErrorKind, Read, Result, Seek, Write};
 use std::os::unix::fs::{symlink, OpenOptionsExt};
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
@@ -138,9 +137,11 @@ fn extract(tar: &Path, verbose: bool, strip: usize) -> Result<()> {
     if tar == Path::new("-") {
         extract_inner(&mut Archive::new(stdin()), verbose, strip)
     } else {
-        let mime = tree_magic::from_filepath(Path::new(&tar));
-        let file = BufReader::new(File::open(tar)?);
-        if mime == Some("application/x-xz".to_string()) {
+        let mut file = BufReader::new(File::open(tar)?);
+        let mut magic = [0; 6];
+        file.read_exact(&mut magic)?;
+        file.rewind()?;
+        if magic == [0xFD, 0x37, 0x7A, 0x58, 0x5A, 0x00] {
             extract_inner(
                 &mut Archive::new(
                     LzmaReader::new_decompressor(file)
@@ -149,7 +150,7 @@ fn extract(tar: &Path, verbose: bool, strip: usize) -> Result<()> {
                 verbose,
                 strip,
             )
-        } else if mime == Some("application/gzip".to_string()) {
+        } else if magic[..2] == [0x1F, 0x8B] {
             extract_inner(
                 &mut Archive::new(
                     GzipDecoder::new(file).map_err(|e| Error::new(ErrorKind::Other, e))?,
@@ -157,7 +158,7 @@ fn extract(tar: &Path, verbose: bool, strip: usize) -> Result<()> {
                 verbose,
                 strip,
             )
-        } else if mime == Some("application/x-bzip".to_string()) {
+        } else if &magic[..2] == b"BZ" {
             extract_inner(&mut Archive::new(BzDecoder::new(file)), verbose, strip)
         } else {
             extract_inner(&mut Archive::new(file), verbose, strip)
