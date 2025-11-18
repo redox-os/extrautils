@@ -1,0 +1,17 @@
+image: "redoxos/redoxer"
+
+stages:
+  - host
+  - build
+
+fmt:
+  stage: host
+  script:
+      - rustup component add rustfmt
+      - rustfmt --check
+
+build:redox:
+  stage: build
+  script:
+    - redoxer pkg xz
+    - redoxer build --bins
