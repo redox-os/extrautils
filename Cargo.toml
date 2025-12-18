@@ -85,10 +85,13 @@ libredox = "0.1"
 tar = { version = "0.4.27", default-features = false }
 filetime = { git = "https://github.com/jackpot51/filetime.git" }
 termion = "4"
-rust-lzma = {version = "0.6", features = ["static"]}
-tree_magic = { git = "https://github.com/aahancoc/tree_magic.git", rev = "56fd014b4e4aefea7d1e37d4216595624511cefc" }
+rust-lzma = {version = "0.6", features = []}
 bzip2 = "0.3"
 zip = "0.3"
+
+[features]
+default = []
+static = [ "rust-lzma/static" ]
 
 [dev-dependencies]
 assert_cmd = "1"
