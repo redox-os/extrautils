@@ -1,8 +1,13 @@
-image: "redoxos/redoxer"
+image: "redoxos/redoxer:latest"
+
+workflow:
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PROJECT_NAMESPACE == "redox-os"'
+    - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "master"'
 
 stages:
   - host
-  - build
+  - test
 
 fmt:
   stage: host
@@ -10,8 +15,8 @@ fmt:
       - rustup component add rustfmt
       - rustfmt --check
 
-build:redox:
-  stage: build
+build:
+  stage: test
   script:
     - redoxer pkg xz
     - redoxer build --bins
