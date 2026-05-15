@@ -71,10 +71,6 @@ path = "src/bin/tar.rs"
 name = "unzip"
 path = "src/bin/unzip.rs"
 
-[[bin]]
-name = "watch"
-path = "src/bin/watch.rs"
-
 [dependencies]
 arg_parser = { git = "https://gitlab.redox-os.org/redox-os/arg-parser.git" }
 extra = { git = "https://gitlab.redox-os.org/redox-os/libextra.git" }
